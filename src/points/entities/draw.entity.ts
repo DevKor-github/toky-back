@@ -10,11 +10,11 @@ export class DrawEntity{
     id : number;
 
     @ManyToOne(type => UserEntity, user=>user.draws)
-    @JoinColumn()
+    @JoinColumn({name : 'user_id'})
     user : UserEntity;
 
     @ManyToOne(type => GiftEntity, gift => gift.draws)
-    @JoinColumn()
+    @JoinColumn({name : 'gift_id'})
     gift : GiftEntity;
     // 날짜?
 }

@@ -1,13 +1,14 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { BetDetailEntity } from "./betDetail.entity";
+import { BetAnswerEntity } from "./betAnswer.entity";
+import { Match } from "src/common/enums/event.enum";
 @Entity('bet_question')
 export class BetQuestionEntity{
 
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
-    event : number;
+    @Column({type : 'enum', enum: Match})
+    match : Match;
 
     @Column()
     description: string;
@@ -15,8 +16,8 @@ export class BetQuestionEntity{
     @Column()
     result : number;
 
-    @OneToMany(type => BetDetailEntity, detail => detail.question)
-    betDetails : BetDetailEntity[];
+    @OneToMany(type => BetAnswerEntity, detail => detail.question)
+    betDetails : BetAnswerEntity[];
     //one to many bet pick
 
 }

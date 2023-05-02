@@ -10,16 +10,19 @@ export class PointEntity{
     remainingPoint : number;
 
     @Column()
-    bascketball : number;
+    baseball : number;
+
+    @Column()
+    basketball : number;
+
+    @Column()
+    icehockey : number;
+
+    @Column()  
+    rugby : number;
 
     @Column()
     football :number;
-    @Column()  
-    rugby : number;
-    @Column()
-    baseball : number;
-    @Column()
-    icehockey : number;
 
     // @OneToOne()
     //ranking은? user랑 join 해서 각 항목 별로 정렬
