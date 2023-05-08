@@ -17,8 +17,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       database: 'toky',
       autoLoadEntities: true,
       synchronize: true,
-   })
-    ,UsersModule, BetsModule, PointsModule],
+    }),
+    UsersModule,
+    BetsModule,
+    PointsModule,
+  ],
 
   controllers: [AppController],
   providers: [AppService],

@@ -6,8 +6,8 @@ import { BetAnswerEntity } from './entities/betAnswer.entity';
 import { BetQuestionEntity } from './entities/betQuestion.entity';
 
 @Module({
-  imports : [TypeOrmModule.forFeature([BetAnswerEntity,BetQuestionEntity])],
+  imports: [TypeOrmModule.forFeature([BetAnswerEntity, BetQuestionEntity])],
   controllers: [BetsController],
-  providers: [BetsService]
+  providers: [BetsService],
 })
 export class BetsModule {}

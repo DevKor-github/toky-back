@@ -1,21 +1,26 @@
-import { UserEntity } from "src/users/entities/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { BetQuestionEntity } from "./betQuestion.entity";
+import { UserEntity } from 'src/users/entities/user.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { BetQuestionEntity } from './betQuestion.entity';
 
 @Entity('bet_answer')
-export class BetAnswerEntity{
-    @PrimaryGeneratedColumn()
-    id : number;
+export class BetAnswerEntity {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    answer : number //enum choice가 매 question마다 개수가 다를 수 있음 
+  @Column()
+  answer: number; //enum choice가 매 question마다 개수가 다를 수 있음
 
-    @ManyToOne(type => UserEntity, user => user.bets) //fk  many to one user
-    @JoinColumn({name :'user_id'}) // 
-    user : UserEntity;
-   
-    @ManyToOne(type => BetQuestionEntity, question => question.betDetails)//many to one bet item
-    @JoinColumn({name : 'question_id' })
-    question : BetQuestionEntity;
-    
+  @ManyToOne((type) => UserEntity, (user) => user.bets) //fk  many to one user
+  @JoinColumn({ name: 'user_id' }) //
+  user: UserEntity;
+
+  @ManyToOne((type) => BetQuestionEntity, (question) => question.betDetails) //many to one bet item
+  @JoinColumn({ name: 'question_id' })
+  question: BetQuestionEntity;
 }

@@ -8,8 +8,15 @@ import { HistoryEntity } from './entities/history.entity';
 import { PointEntity } from './entities/point.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([DrawEntity,GiftEntity,HistoryEntity,PointEntity])],
+  imports: [
+    TypeOrmModule.forFeature([
+      DrawEntity,
+      GiftEntity,
+      HistoryEntity,
+      PointEntity,
+    ]),
+  ],
   controllers: [PointsController],
-  providers: [PointsService]
+  providers: [PointsService],
 })
 export class PointsModule {}

@@ -1,16 +1,15 @@
-import { Usage } from "src/common/enums/usage.enum";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Usage } from 'src/common/enums/usage.enum';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('history')// usages? point_hisotry?
-export class HistoryEntity{
+@Entity('history') // usages? point_hisotry?
+export class HistoryEntity {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @PrimaryGeneratedColumn()
-    id : number;
+  @Column({ type: 'enum', enum: Usage })
+  usage: Usage;
 
-    @Column({type:'enum', enum: Usage})
-    usage: Usage;
-
-    @Column({name:'used_point'})
-    usedPoint : number;
-    //many to one user
+  @Column({ name: 'used_point' })
+  usedPoint: number;
+  //many to one user
 }
