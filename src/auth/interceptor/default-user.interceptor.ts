@@ -13,7 +13,7 @@ import { Repository } from 'typeorm';
 export class DefaultUserInterceptor implements NestInterceptor {
   constructor(
     @InjectRepository(UserEntity)
-    private readonly userEntity: Repository<UserEntity>,
+    private readonly userRepository: Repository<UserEntity>,
   ) {}
 
   async intercept(
@@ -24,7 +24,7 @@ export class DefaultUserInterceptor implements NestInterceptor {
     const { user } = request;
 
     if (!user) {
-      const defaultUser = await this.userEntity.findOne({ where: {} });
+      const defaultUser = await this.userRepository.findOne({ where: {} });
       request.user = defaultUser as UserEntity;
     }
 
