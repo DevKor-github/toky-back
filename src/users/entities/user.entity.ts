@@ -30,13 +30,12 @@ export class UserEntity {
   @OneToMany((type) => BetAnswerEntity, (bet) => bet.user) // one to many BetDetail
   bets: BetAnswerEntity[];
 
-  @OneToOne((type) => PointEntity) // one to many point
+  @OneToOne((type) => PointEntity, { cascade: ['update'] }) // one to many point
   @JoinColumn({ name: 'point_id' })
   point: PointEntity;
 
-  @OneToOne((type) => HistoryEntity)
-  @JoinColumn({ name: 'point_history_id' })
-  pointHistory: HistoryEntity;
+  @OneToMany((type) => HistoryEntity, (history) => history.user)
+  pointHistories: HistoryEntity[];
 
   @OneToMany((type) => DrawEntity, (draw) => draw.user)
   draws: DrawEntity[];
