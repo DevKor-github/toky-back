@@ -15,6 +15,8 @@ export class BetsService {
     private readonly betAnswerRepository: Repository<BetAnswerEntity>,
     @InjectRepository(BetQuestionEntity)
     private readonly betQuestionRepository: Repository<BetQuestionEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
   ) {}
 
   async getBetQuestions(match: Match) {
@@ -25,7 +27,7 @@ export class BetsService {
     });
   }
 
-  async createBetAnswer(user: UserEntity, createDto: CreateBetAnswerDto) {
+  async createBetAnswer(userid: string, createDto: CreateBetAnswerDto) {
     const { questionId, answer } = createDto;
     console.log(questionId, answer);
     const question = await this.betQuestionRepository.findOne({
@@ -39,8 +41,8 @@ export class BetsService {
         'An betting question with requested questionId does not exist',
       );
     }
-
-    const result = await this.betAnswerRepository.create({
+    const user = await this.userRepository.findOne({ where: { id: userid } });
+    const result = this.betAnswerRepository.create({
       user,
       question,
       answer,

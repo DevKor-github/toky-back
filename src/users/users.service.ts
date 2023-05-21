@@ -21,4 +21,8 @@ export class UsersService {
     const userInfoDto: UserInfoDto = new UserInfoDto(user);
     return userInfoDto;
   }
+
+  async findUserById(id: string) {
+    return await this.userRepository.findOne({ where: { id } });
+  }
 }
