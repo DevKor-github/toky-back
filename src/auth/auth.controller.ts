@@ -82,4 +82,16 @@ export class AuthController {
     await this.authService.saveRefreshToken(token.refreshToken, id);
     res.redirect(process.env.DOMAIN);
   }
+
+  @Get('/logout')
+  @UseGuards(AuthGuard('jwt-refresh'))
+  async logout(@Req() req, @Res() res) {
+    res.clearCookie('access-token');
+    res.clearCookie('refresh-token');
+
+    const { refreshToken, id } = req.user;
+    await this.authService.checkRefreshToken(refreshToken, id);
+
+    res.redirect(process.env.DOMAIN);
+  }
 }
