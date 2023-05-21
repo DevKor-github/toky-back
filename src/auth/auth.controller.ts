@@ -11,6 +11,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
+import { PhoneDto } from './dto/phone.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -117,5 +118,20 @@ export class AuthController {
     await this.authService.saveRefreshToken(token.refreshToken, id);
 
     res.redirect(process.env.DOMAIN);
+  }
+
+  @Post('/phone')
+  @UseGuards(AuthGuard('jwt'))
+  async phone(@Req() req, @Body() phoneDto: PhoneDto) {
+    const { id } = req.user;
+    const { phoneNumber } = phoneDto;
+    return await this.authService.validatePhoneNumber(phoneNumber, id);
+  }
+
+  @Post('/code')
+  @UseGuards(AuthGuard('jwt'))
+  async code(@Req() req, @Body() code: string) {
+    const { id } = req.user;
+    return await this.authService.checkCode(id, code);
   }
 }

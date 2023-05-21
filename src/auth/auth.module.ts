@@ -9,10 +9,11 @@ import { NaverStrategy } from './strategy/naver.strategy';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { UsersService } from 'src/users/users.service';
 import { TokenEntity } from './entities/token.entity';
+import { PhoneEntity } from './entities/phone.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserEntity, TokenEntity]),
+    TypeOrmModule.forFeature([UserEntity, TokenEntity, PhoneEntity]),
     JwtModule.register({}),
   ],
   providers: [
