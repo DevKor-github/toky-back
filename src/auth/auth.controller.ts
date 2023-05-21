@@ -1,7 +1,16 @@
-import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
+import { SignupDto } from './dto/signup.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -24,15 +33,14 @@ export class AuthController {
   async kakaoLoginRedirect(@Req() req, @Res() res) {
     const userInfoDto = await this.usersService.findOrCreateById(req.user.id);
 
+    const token = await this.authService.getToken(userInfoDto.payload);
+    res.cookie('access-token', token.accessToken);
+    res.cookie('refresh-token', token.refreshToken);
+
     if (!userInfoDto.payload.phoneNumber) {
       res.redirect(process.env.DOMAIN + '/signup');
       return;
     }
-
-    const token = await this.authService.getToken(userInfoDto.payload);
-
-    res.cookie('access-token', token.accessToken);
-    res.cookie('refresh-token', token.refreshToken);
 
     await this.authService.saveRefreshToken(
       token.refreshToken,
@@ -52,15 +60,14 @@ export class AuthController {
   async naverLoginRedirect(@Req() req, @Res() res) {
     const userInfoDto = await this.usersService.findOrCreateById(req.user.id);
 
+    const token = await this.authService.getToken(userInfoDto.payload);
+    res.cookie('access-token', token.accessToken);
+    res.cookie('refresh-token', token.refreshToken);
+
     if (!userInfoDto.payload.phoneNumber) {
       res.redirect(process.env.DOMAIN + '/signup');
       return;
     }
-
-    const token = await this.authService.getToken(userInfoDto.payload);
-
-    res.cookie('access-token', token.accessToken);
-    res.cookie('refresh-token', token.refreshToken);
 
     await this.authService.saveRefreshToken(
       token.refreshToken,
@@ -91,6 +98,23 @@ export class AuthController {
 
     const { refreshToken, id } = req.user;
     await this.authService.checkRefreshToken(refreshToken, id);
+
+    res.redirect(process.env.DOMAIN);
+  }
+
+  @Post('/signup')
+  @UseGuards(AuthGuard('jwt'))
+  async signup(@Req() req, @Res() res, @Body() signupDto: SignupDto) {
+    const { id, phoneNumber } = req.user;
+
+    await this.usersService.signup(signupDto, id);
+
+    const payload = { id, phoneNumber };
+    const token = await this.authService.getToken(payload);
+    res.cookie('access-token', token.accessToken);
+    res.cookie('refresh-token', token.refreshToken);
+
+    await this.authService.saveRefreshToken(token.refreshToken, id);
 
     res.redirect(process.env.DOMAIN);
   }
