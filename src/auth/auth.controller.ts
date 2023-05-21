@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
@@ -66,6 +66,20 @@ export class AuthController {
       token.refreshToken,
       userInfoDto.payload.id,
     );
+    res.redirect(process.env.DOMAIN);
+  }
+
+  @Post('/refresh')
+  @UseGuards(AuthGuard('jwt-refresh'))
+  async refresh(@Req() req, @Res() res) {
+    const { refreshToken, id, phoneNumber } = req.user;
+    await this.authService.checkRefreshToken(refreshToken, id);
+    const payload = { id, phoneNumber };
+    const token = await this.authService.getToken(payload);
+    res.cookie('access-token', token.accessToken);
+    res.cookie('refresh-token', token.refreshToken);
+
+    await this.authService.saveRefreshToken(token.refreshToken, id);
     res.redirect(process.env.DOMAIN);
   }
 }

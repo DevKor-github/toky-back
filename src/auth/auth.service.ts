@@ -34,4 +34,15 @@ export class AuthService {
     const token = this.tokenRepository.create({ refreshToken, id });
     await this.tokenRepository.save(token);
   }
+
+  async checkRefreshToken(refreshToken: string, id: string) {
+    const token = await this.tokenRepository.findOne({
+      where: { id, refreshToken },
+    });
+    if (!token) {
+      //TODO : throw error
+      throw new Error('Invalid refresh token');
+    }
+    await this.tokenRepository.delete(token);
+  }
 }
