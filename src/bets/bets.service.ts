@@ -53,7 +53,7 @@ export class BetsService {
     }
   }
 
-  async getBetAnswers(userId: number) {
+  async getBetAnswers(userId: string) {
     return this.betAnswerRepository.find({
       where: {
         user: {
@@ -66,7 +66,7 @@ export class BetsService {
     });
   }
 
-  async updateBetAnswer(userId: number, updateDto: UpdateBetAnswerDto) {
+  async updateBetAnswer(userId: string, updateDto: UpdateBetAnswerDto) {
     const { answerId, answer } = updateDto;
     const betAnswer = await this.betAnswerRepository.findOne({
       where: {
