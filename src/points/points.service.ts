@@ -9,7 +9,6 @@ import { UserEntity } from 'src/users/entities/user.entity';
 import { GiftEntity } from './entities/gift.entity';
 import { DrawEntity } from './entities/draw.entity';
 import { HistoryEntity } from './entities/history.entity';
-import { Match } from 'src/common/enums/event.enum';
 
 @Injectable()
 export class PointsService {
@@ -20,71 +19,33 @@ export class PointsService {
     private readonly giftRepository: Repository<GiftEntity>,
     private readonly dataSource: DataSource,
   ) {}
-  async getRanking(match?: Match) {
-    const matchArr = [
-      'baseball',
-      'basketball',
-      'icehockey',
-      'rugby',
-      'football',
-    ];
-    const m = matchArr[match];
 
-    //전체 랭킹 조회시 (match === undefined)
-    if (!m) {
-      const result = await this.userRepository.find({
-        where: {},
-        select: ['name', 'university', 'point'],
-        relations: {
-          point: true,
-        },
-      });
-
-      const addedResult = result.map((item) => {
-        const point = item.point;
-        const sumOfPoint =
-          point.baseball +
-          point.basketball +
-          point.icehockey +
-          point.rugby +
-          point.football;
-
-        return {
-          name: item.name,
-          university: item.university,
-          point: sumOfPoint,
-        };
-      });
-
-      return addedResult.sort((a, b) => b.point - a.point);
-    }
-
+  async getRanking() {
     const result = await this.userRepository.find({
       where: {},
-      select: {
-        name: true,
-        university: true,
-        point: {
-          [m]: true,
-        },
-      },
+      select: ['name', 'university', 'point'],
       relations: {
         point: true,
       },
-      order: {
-        point: {
-          [m]: 'DESC',
-        },
-      },
     });
 
-    return result.map((item) => {
+    const resultWithSumOfPoint = result.map((item) => {
+      const point = item.point;
+      const sumOfPoint =
+        point.baseball +
+        point.basketball +
+        point.icehockey +
+        point.rugby +
+        point.football;
+
       return {
         name: item.name,
         university: item.university,
-        point: item.point[m],
+        point: sumOfPoint,
       };
     });
+
+    return resultWithSumOfPoint.sort((a, b) => b.point - a.point);
   }
 
   async drawForGift(giftId: number, user: UserEntity) {
