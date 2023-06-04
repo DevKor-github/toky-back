@@ -6,18 +6,15 @@ import {
   ParseEnumPipe,
   Patch,
   Post,
+  Req,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { BetsService } from './bets.service';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { CreateBetAnswerDto } from './dto/create-bet-answer.dto';
 import { UpdateBetAnswerDto } from './dto/update-bet-answer.dto';
-import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
-import { UserEntity } from 'src/users/entities/user.entity';
 import { Match } from 'src/common/enums/event.enum';
-import { DefaultUserInterceptor } from 'src/auth/interceptor/default-user.interceptor';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('bets')
 export class BetsController {
@@ -33,34 +30,31 @@ export class BetsController {
 
   //@ApiBearerAuth()
   @Post('/')
-  //@UseGuards(JwtAuthGuard)
-  @UseInterceptors(DefaultUserInterceptor)
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '베팅 항목 별 첫 베팅하기' })
   async createBetAnswer(
+    @Req() req,
     @Body() createBetAnswerDto: CreateBetAnswerDto,
-    @CurrentUser() user: UserEntity,
   ) {
-    return this.betsService.createBetAnswer(user, createBetAnswerDto);
+    return this.betsService.createBetAnswer(req.user.id, createBetAnswerDto);
   }
 
   //@ApiBearerAuth()
   @Get('/')
-  //@UseGuards(JwtAuthGuard)
-  @UseInterceptors(DefaultUserInterceptor)
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '사용자가 베팅한 이력 조회하기' })
-  async getBetAnswers(@CurrentUser() user: UserEntity) {
-    return this.betsService.getBetAnswers(user.id);
+  async getBetAnswers(@Req() req) {
+    return this.betsService.getBetAnswers(req.user.id);
   }
 
   //@ApiBearerAuth()
   @Patch('/')
-  //@UseGuards(JwtAuthGuard)
-  @UseInterceptors(DefaultUserInterceptor)
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '사용자 베팅 수정하기' })
   async updateBetAnswer(
     @Body() updateBetAnswer: UpdateBetAnswerDto,
-    @CurrentUser() user: UserEntity,
+    @Req() req,
   ) {
-    return this.betsService.updateBetAnswer(user.id, updateBetAnswer);
+    return this.betsService.updateBetAnswer(req.user.id, updateBetAnswer);
   }
 }

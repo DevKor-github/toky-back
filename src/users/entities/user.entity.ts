@@ -1,4 +1,3 @@
-import { type } from 'os';
 import { BetAnswerEntity } from 'src/bets/entities/betAnswer.entity';
 import { University } from 'src/common/enums/university.enum';
 import { DrawEntity } from 'src/points/entities/draw.entity';
@@ -10,13 +9,13 @@ import {
   JoinColumn,
   OneToMany,
   OneToOne,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
 } from 'typeorm';
 
 @Entity('user')
 export class UserEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryColumn()
+  id: string;
 
   @Column()
   name: string;

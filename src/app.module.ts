@@ -6,6 +6,7 @@ import { BetsModule } from './bets/bets.module';
 import { PointsModule } from './points/points.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ConfigModule } from '@nestjs/config';
     UsersModule,
     BetsModule,
     PointsModule,
+    AuthModule,
   ],
 
   controllers: [AppController],
