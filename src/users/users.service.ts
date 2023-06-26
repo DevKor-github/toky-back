@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { UserInfoDto } from './dto/user-info.dto';
+import { UserInfoDto } from 'src/users/dto/user-info.dto';
 import { SignupDto } from 'src/auth/dto/signup.dto';
 import { PhoneEntity } from 'src/auth/entities/phone.entity';
 
