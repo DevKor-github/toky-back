@@ -79,7 +79,7 @@ export class BetsService {
 
     if (!betAnswer) {
       throw new NotFoundException(
-        'An betting answer with requested answerId and user does not exist',
+        'An betting answer with requested questionId does not exist',
       );
     }
 
@@ -90,5 +90,46 @@ export class BetsService {
     } catch (e) {
       throw e;
     }
+  }
+
+  async getTotalPredictions(userId: string) {
+    const questionId = [1, 2, 3, 4, 5]; //승부에 대한 예측 question id 5개 설정
+    let matchAnswer: Promise<BetAnswerEntity>[] = [];
+    let numWinKorea = 0;
+    let numWinYonsei = 0;
+    let numDraw = 0;
+    questionId.map(async (i) => {
+      const betAnswer = this.betAnswerRepository.findOne({
+        where: {
+          user: {
+            id: userId,
+          },
+          question: {
+            id: i,
+          },
+        },
+      });
+      if (!betAnswer) {
+        throw new NotFoundException(
+          'An betting answer with requested answerId and user does not exist',
+        );
+      }
+      matchAnswer.push(betAnswer);
+    });
+
+    const result = await Promise.all(matchAnswer)
+      .then((betAnswers) => {
+        betAnswers.map((betAnswer: BetAnswerEntity) => {
+          //   console.log(betAnswer);
+          if (betAnswer.answer == 0) numWinKorea++;
+          else if (betAnswer.answer == 1) numDraw++;
+          else numWinYonsei++;
+        });
+      })
+      .then(() => {
+        return Promise.resolve({ numWinKorea, numWinYonsei, numDraw });
+      });
+
+    return result;
   }
 }

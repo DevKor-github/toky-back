@@ -57,4 +57,11 @@ export class BetsController {
   ) {
     return this.betsService.updateBetAnswer(req.user.id, updateBetAnswer);
   }
+
+  @Get('/share')
+  //@UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: '사용자의 종합 우승 스코어 조회하기' })
+  async getTotalPredictions(@Req() req) {
+    return this.betsService.getTotalPredictions(req.user.id);
+  }
 }
