@@ -48,7 +48,8 @@ export class AuthService {
       // TODO: throw error
       throw new Error('Invalid refresh token');
     }
-    await this.tokenRepository.delete(token);
+
+    await this.tokenRepository.remove(token);
   }
 
   async validatePhoneNumber(phoneNumber: string, id: string) {
