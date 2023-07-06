@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { BetAnswerEntity } from './entities/betAnswer.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { CreateBetAnswerDto } from './dto/create-bet-answer.dto';
@@ -98,38 +98,22 @@ export class BetsService {
     let numWinKorea = 0;
     let numWinYonsei = 0;
     let numDraw = 0;
-    questionId.map(async (i) => {
-      const betAnswer = this.betAnswerRepository.findOne({
-        where: {
-          user: {
-            id: userId,
-          },
-          question: {
-            id: i,
-          },
+    const betAnswer = await this.betAnswerRepository.find({
+      where: {
+        user: {
+          id: userId,
         },
-      });
-      if (!betAnswer) {
-        throw new NotFoundException(
-          'An betting answer with requested answerId and user does not exist',
-        );
-      }
-      matchAnswer.push(betAnswer);
+        question: {
+          id: In(questionId),
+        },
+      },
+    });
+    const result = betAnswer.map((betAnswer: BetAnswerEntity) => {
+      if (betAnswer.answer == 0) numWinKorea++;
+      else if (betAnswer.answer == 1) numDraw++;
+      else numWinYonsei++;
     });
 
-    const result = await Promise.all(matchAnswer)
-      .then((betAnswers) => {
-        betAnswers.map((betAnswer: BetAnswerEntity) => {
-          //   console.log(betAnswer);
-          if (betAnswer.answer == 0) numWinKorea++;
-          else if (betAnswer.answer == 1) numDraw++;
-          else numWinYonsei++;
-        });
-      })
-      .then(() => {
-        return Promise.resolve({ numWinKorea, numWinYonsei, numDraw });
-      });
-
-    return result;
+    return { numWinKorea, numWinYonsei, numDraw };
   }
 }
