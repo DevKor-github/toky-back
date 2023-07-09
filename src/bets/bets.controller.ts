@@ -15,6 +15,7 @@ import { CreateBetAnswerDto } from './dto/create-bet-answer.dto';
 import { UpdateBetAnswerDto } from './dto/update-bet-answer.dto';
 import { Match } from 'src/common/enums/event.enum';
 import { AuthGuard } from '@nestjs/passport';
+import { CreateAnswerResDto } from './dto/create-answer-res-dto';
 
 @Controller('bets')
 export class BetsController {
@@ -35,7 +36,7 @@ export class BetsController {
   async createBetAnswer(
     @Req() req,
     @Body() createBetAnswerDto: CreateBetAnswerDto,
-  ) {
+  ): Promise<CreateAnswerResDto> {
     return this.betsService.createBetAnswer(req.user.id, createBetAnswerDto);
   }
 

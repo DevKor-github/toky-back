@@ -50,6 +50,7 @@ export class BetsService {
 
     try {
       await this.betAnswerRepository.save(result);
+      return { answerId: result.id };
     } catch (e) {
       throw e;
     }
