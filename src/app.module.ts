@@ -7,6 +7,7 @@ import { PointsModule } from './points/points.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { CheersModule } from './cheers/cheers.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AuthModule } from './auth/auth.module';
     BetsModule,
     PointsModule,
     AuthModule,
+    CheersModule,
   ],
 
   controllers: [AppController],
