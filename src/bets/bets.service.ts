@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { BetAnswerEntity } from './entities/betAnswer.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { CreateBetAnswerDto } from './dto/create-bet-answer.dto';
@@ -80,7 +80,7 @@ export class BetsService {
 
     if (!betAnswer) {
       throw new NotFoundException(
-        'An betting answer with requested answerId and user does not exist',
+        'An betting answer with requested questionId does not exist',
       );
     }
 
@@ -91,5 +91,30 @@ export class BetsService {
     } catch (e) {
       throw e;
     }
+  }
+
+  async getTotalPredictions(userId: string) {
+    const questionId = [1, 2, 3, 4, 5]; //승부에 대한 예측 question id 5개 설정
+    let matchAnswer: Promise<BetAnswerEntity>[] = [];
+    let numWinKorea = 0;
+    let numWinYonsei = 0;
+    let numDraw = 0;
+    const betAnswer = await this.betAnswerRepository.find({
+      where: {
+        user: {
+          id: userId,
+        },
+        question: {
+          id: In(questionId),
+        },
+      },
+    });
+    const result = betAnswer.map((betAnswer: BetAnswerEntity) => {
+      if (betAnswer.answer == 0) numWinKorea++;
+      else if (betAnswer.answer == 1) numDraw++;
+      else numWinYonsei++;
+    });
+
+    return { numWinKorea, numWinYonsei, numDraw };
   }
 }
