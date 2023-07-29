@@ -17,14 +17,18 @@ export class UserEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column()
-  name: string;
+  @Column({ nullable: true, length: 20 })
+  name?: string;
 
-  @Column({ name: 'phone_no' })
-  phoneNumber: string;
+  @Column({ name: 'phone_no', nullable: true, length: 12 })
+  phoneNumber?: string;
 
-  @Column({ type: 'enum', enum: University, default: University.Korea })
-  university: University;
+  @Column({
+    type: 'enum',
+    enum: University,
+    nullable: true,
+  })
+  university?: University;
 
   @OneToMany((type) => BetAnswerEntity, (bet) => bet.user) // one to many BetDetail
   bets: BetAnswerEntity[];

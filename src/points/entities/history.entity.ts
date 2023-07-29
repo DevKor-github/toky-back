@@ -1,4 +1,3 @@
-import { Usage } from 'src/common/enums/usage.enum';
 import { UserEntity } from 'src/users/entities/user.entity';
 import {
   Column,
@@ -13,8 +12,8 @@ export class HistoryEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'enum', enum: Usage })
-  usage: Usage;
+  @Column()
+  detail: string;
 
   @Column({ name: 'used_point' })
   usedPoint: number;

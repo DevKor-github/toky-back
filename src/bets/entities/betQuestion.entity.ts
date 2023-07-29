@@ -15,8 +15,8 @@ export class BetQuestionEntity {
   @Column()
   result: number;
 
-  @Column({type : "text", array: true})
-  choice : string[];
+  @Column({ type: 'text', array: true })
+  choice: string[];
 
   @OneToMany((type) => BetAnswerEntity, (detail) => detail.question)
   betDetails: BetAnswerEntity[];

@@ -7,6 +7,8 @@ import { UpdateBetAnswerDto } from './dto/update-bet-answer.dto';
 import { BetQuestionEntity } from './entities/betQuestion.entity';
 import { Match } from 'src/common/enums/event.enum';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ParticipantsResponseDto } from './dto/participantsResponse.dto';
+import { University } from 'src/common/enums/university.enum';
 
 @Injectable()
 export class BetsService {
@@ -95,7 +97,7 @@ export class BetsService {
 
   async getTotalPredictions(userId: string) {
     const questionId = [1, 2, 3, 4, 5]; //승부에 대한 예측 question id 5개 설정
-    let matchAnswer: Promise<BetAnswerEntity>[] = [];
+    const matchAnswer: Promise<BetAnswerEntity>[] = [];
     let numWinKorea = 0;
     let numWinYonsei = 0;
     let numDraw = 0;
@@ -116,5 +118,19 @@ export class BetsService {
     });
 
     return { numWinKorea, numWinYonsei, numDraw };
+  }
+
+  // TODO: 캐싱
+  async getBetParticipants(): Promise<ParticipantsResponseDto> {
+    const usersWithBetAnswer = await this.userRepository
+      .createQueryBuilder('user')
+      .innerJoin('user.bets', 'betAnswer')
+      .getMany();
+
+    const korea = usersWithBetAnswer.filter(
+      (user) => user.university === University.Korea,
+    ).length;
+
+    return { korea, yonsei: usersWithBetAnswer.length - korea };
   }
 }

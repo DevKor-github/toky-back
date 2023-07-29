@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -12,6 +13,7 @@ import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { PhoneDto } from './dto/phone.dto';
+import { JwtPayload } from 'src/common/interfaces/JwtPayload';
 
 @Controller('auth')
 export class AuthController {
@@ -35,19 +37,22 @@ export class AuthController {
     const userInfoDto = await this.usersService.findOrCreateById(req.user.id);
 
     const token = await this.authService.getToken(userInfoDto.payload);
-    res.cookie('access-token', token.accessToken);
-    res.cookie('refresh-token', token.refreshToken);
-
-    if (!userInfoDto.payload.phoneNumber) {
-      res.redirect(process.env.DOMAIN + '/signup');
-      return;
-    }
-
+    res.cookie('access-token', token.accessToken, {
+      expires: new Date(Date.now() + 10000),
+    });
+    res.cookie('refresh-token', token.refreshToken, {
+      expires: new Date(Date.now() + 10000),
+    });
     await this.authService.saveRefreshToken(
       token.refreshToken,
       userInfoDto.payload.id,
     );
-    res.redirect(process.env.DOMAIN);
+    if (!userInfoDto.hasPhone) {
+      res.redirect(process.env.DOMAIN + '/signup');
+      return;
+    }
+
+    res.redirect(process.env.DOMAIN + '/bets');
   }
 
   @Get('/naver')
@@ -62,43 +67,50 @@ export class AuthController {
     const userInfoDto = await this.usersService.findOrCreateById(req.user.id);
 
     const token = await this.authService.getToken(userInfoDto.payload);
-    res.cookie('access-token', token.accessToken);
-    res.cookie('refresh-token', token.refreshToken);
-
-    if (!userInfoDto.payload.phoneNumber) {
-      res.redirect(process.env.DOMAIN + '/signup');
-      return;
-    }
+    res.cookie('access-token', token.accessToken, {
+      expires: new Date(Date.now() + 10000),
+    });
+    res.cookie('refresh-token', token.refreshToken, {
+      expires: new Date(Date.now() + 10000),
+    });
 
     await this.authService.saveRefreshToken(
       token.refreshToken,
       userInfoDto.payload.id,
     );
-    res.redirect(process.env.DOMAIN);
+
+    if (!userInfoDto.hasPhone) {
+      res.redirect(process.env.DOMAIN + '/signup');
+      return;
+    }
+
+    res.redirect(process.env.DOMAIN + '/bets');
   }
 
   @Post('/refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
   async refresh(@Req() req, @Res() res) {
-    const { refreshToken, id, phoneNumber } = req.user;
-    await this.authService.checkRefreshToken(refreshToken, id);
-    const payload = { id, phoneNumber };
-    const token = await this.authService.getToken(payload);
-    res.cookie('access-token', token.accessToken);
-    res.cookie('refresh-token', token.refreshToken);
+    try {
+      const { refreshToken, id } = req.user;
+      await this.authService.checkRefreshToken(refreshToken, id);
+      const payload: JwtPayload = { id, signedAt: new Date().toISOString() };
+      const token = await this.authService.getToken(payload);
+      await this.authService.saveRefreshToken(token.refreshToken, id);
 
-    await this.authService.saveRefreshToken(token.refreshToken, id);
-    res.redirect(process.env.DOMAIN);
+      res.json({
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+      });
+    } catch (err) {
+      res.sendStatus(401);
+    }
   }
 
   @Get('/logout')
-  @UseGuards(AuthGuard('jwt-refresh'))
+  @UseGuards(AuthGuard('jwt'))
   async logout(@Req() req, @Res() res) {
-    res.clearCookie('access-token');
-    res.clearCookie('refresh-token');
-
-    const { refreshToken, id } = req.user;
-    await this.authService.checkRefreshToken(refreshToken, id);
+    const { id } = req.user;
+    await this.authService.removeRefreshToken(id);
 
     res.redirect(process.env.DOMAIN);
   }
@@ -106,32 +118,53 @@ export class AuthController {
   @Post('/signup')
   @UseGuards(AuthGuard('jwt'))
   async signup(@Req() req, @Res() res, @Body() signupDto: SignupDto) {
-    const { id, phoneNumber } = req.user;
+    try {
+      console.log(signupDto);
+      const { id } = req.user;
 
-    await this.usersService.signup(signupDto, id);
+      const isValidCode = await this.authService.checkCode(id, signupDto.code);
+      if (!isValidCode) throw Error('인증번호가 일치하지 않습니다.');
 
-    const payload = { id, phoneNumber };
-    const token = await this.authService.getToken(payload);
-    res.cookie('access-token', token.accessToken);
-    res.cookie('refresh-token', token.refreshToken);
+      await this.usersService.signup(signupDto, id);
 
-    await this.authService.saveRefreshToken(token.refreshToken, id);
-
-    res.redirect(process.env.DOMAIN);
+      res.sendStatus(201);
+    } catch (err) {
+      console.log(err.message);
+      res.status(400).json({ message: err.message });
+    }
   }
 
   @Post('/phone')
   @UseGuards(AuthGuard('jwt'))
-  async phone(@Req() req, @Body() phoneDto: PhoneDto) {
-    const { id } = req.user;
-    const { phoneNumber } = phoneDto;
-    return await this.authService.validatePhoneNumber(phoneNumber, id);
+  async phone(@Req() req, @Res() res, @Body() phoneDto: PhoneDto) {
+    try {
+      const { id } = req.user;
+      const { phoneNumber } = phoneDto;
+      const dashRemovedPhoneNumber = phoneNumber.replace(/-/g, '');
+      const isPhoneValid = await this.usersService.isValidPhoneNumber(
+        dashRemovedPhoneNumber,
+      );
+      if (!isPhoneValid) {
+        throw Error('이미 사용중인 휴대폰 번호입니다.');
+      }
+
+      await this.authService.validatePhoneNumber(dashRemovedPhoneNumber, id);
+      res.sendStatus(200);
+    } catch (err) {
+      return res.status(400).json({ message: err.message });
+    }
   }
 
-  @Post('/code')
+  @Get('/checkname')
   @UseGuards(AuthGuard('jwt'))
-  async code(@Req() req, @Body() code: string) {
+  async checkname(@Query('name') name: string) {
+    return await this.usersService.isValidName(name);
+  }
+
+  @Get('/needsignup')
+  @UseGuards(AuthGuard('jwt'))
+  async checkSignupNeeded(@Req() req) {
     const { id } = req.user;
-    return await this.authService.checkCode(id, code);
+    return await this.usersService.validateUser(id);
   }
 }

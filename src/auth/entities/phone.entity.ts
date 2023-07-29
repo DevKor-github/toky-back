@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity('token')
+@Entity('phone')
 export class PhoneEntity {
   @PrimaryGeneratedColumn()
   id: string;
