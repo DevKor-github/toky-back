@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 import { BetAnswerEntity } from './entities/betAnswer.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { CreateBetAnswerDto } from './dto/create-bet-answer.dto';
@@ -122,15 +122,14 @@ export class BetsService {
 
   // TODO: 캐싱
   async getBetParticipants(): Promise<ParticipantsResponseDto> {
-    const usersWithBetAnswer = await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoin('user.bets', 'betAnswer')
-      .getMany();
+    const totalUserCounts = await this.userRepository.count({
+      where: { phoneNumber: Not(IsNull()) },
+    });
 
-    const korea = usersWithBetAnswer.filter(
-      (user) => user.university === University.Korea,
-    ).length;
+    const korea = await this.userRepository.count({
+      where: { phoneNumber: Not(IsNull()), university: University.Korea },
+    });
 
-    return { korea, yonsei: usersWithBetAnswer.length - korea };
+    return { korea, yonsei: totalUserCounts - korea };
   }
 }
