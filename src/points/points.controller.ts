@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { PointsService } from './points.service';
 import { ApiOperation } from '@nestjs/swagger';
 import { Req } from '@nestjs/common';
@@ -11,8 +19,14 @@ export class PointsController {
 
   @Get('/rank')
   @ApiOperation({ description: '전체 랭킹 조회' })
-  async getRanking() {
-    return this.pointsService.getRanking();
+  async getRanking(@Query('page', ParseIntPipe) page?: number) {
+    return this.pointsService.getRanking(page || 1);
+  }
+
+  @Get('/rank/search')
+  @ApiOperation({ description: '닉네임으로 랭킹 검색' })
+  async getRankingWithName(@Query('name') name: string) {
+    return this.pointsService.searchRankingWithName(name);
   }
 
   @Post('/draw')

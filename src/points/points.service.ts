@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Like, Repository } from 'typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { GiftEntity } from './entities/gift.entity';
 import { DrawEntity } from './entities/draw.entity';
@@ -20,33 +20,83 @@ export class PointsService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async getRanking() {
-    /*const result = await this.userRepository.find({
-      where: {},
-      select: ['name', 'university', 'point'],
+  async getRanking(page: number) {
+    const take = 10;
+
+    const [users, total] = await this.userRepository.findAndCount({
+      select: ['id', 'name', 'university', 'point'],
       relations: {
         point: true,
       },
+      order: {
+        point: {
+          totalPoint: 'DESC',
+        },
+      },
+      take: take,
+      skip: (page - 1) * take,
     });
 
-    const resultWithSumOfPoint = result.map((item) => {
-      const point = item.point;
-      const sumOfPoint =
-        point.baseball +
-        point.basketball +
-        point.icehockey +
-        point.rugby +
-        point.football;
+    const result = users.map((user, idx) => ({
+      id: user.id,
+      name: user.name,
+      university: user.university,
+      point: user.point.totalPoint,
+      rank: (page - 1) * take + idx + 1,
+    }));
 
-      return {
-        name: item.name,
-        university: item.university,
-        point: sumOfPoint,
-      };
+    return {
+      users: result,
+      total,
+      page,
+      last_page: Math.ceil(total / take),
+    };
+  }
+
+  async searchRankingWithName(name: string) {
+    const users = await this.userRepository.find({
+      select: ['id', 'name', 'university', 'point'],
+      relations: {
+        point: true,
+      },
+      order: {
+        point: {
+          totalPoint: 'DESC',
+        },
+      },
     });
 
-    return resultWithSumOfPoint.sort((a, b) => b.point - a.point);*/
-    return [];
+    const result = users
+      .map((user, idx) => ({
+        id: user.id,
+        name: user.name,
+        university: user.university,
+        point: user.point.totalPoint,
+        rank: idx + 1,
+      }))
+      .filter((user) => user.name.includes(name));
+
+    /*
+    const users = await this.userRepository.find({
+      where: { name: Like(`%${name}%`) },
+      relations: {
+        point: true,
+      },
+      order: {
+        point: {
+          totalPoint: 'DESC',
+        },
+      },
+    });
+
+    const result = users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      university: user.university,
+      point: user.point.totalPoint,
+    }));*/
+
+    return { users: result };
   }
 
   async drawForGift(giftId: number, user: UserEntity) {
