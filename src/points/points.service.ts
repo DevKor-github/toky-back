@@ -21,7 +21,7 @@ export class PointsService {
   ) {}
 
   async getRanking() {
-    const result = await this.userRepository.find({
+    /*const result = await this.userRepository.find({
       where: {},
       select: ['name', 'university', 'point'],
       relations: {
@@ -45,11 +45,13 @@ export class PointsService {
       };
     });
 
-    return resultWithSumOfPoint.sort((a, b) => b.point - a.point);
+    return resultWithSumOfPoint.sort((a, b) => b.point - a.point);*/
+    return [];
   }
 
   async drawForGift(giftId: number, user: UserEntity) {
     //해당 경품 번호가 있는지 확인
+    /*
     const gift = await this.giftRepository.findOne({
       where: {
         id: giftId,
@@ -98,7 +100,7 @@ export class PointsService {
       .catch((e) => {
         console.error(e);
       });
-
+*/
     return;
   }
 }

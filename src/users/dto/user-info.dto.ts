@@ -3,9 +3,12 @@ import { UserEntity } from '../entities/user.entity';
 
 export class UserInfoDto {
   constructor(user: UserEntity) {
-    this.payload.id = user.id;
-    this.payload.phoneNumber = user.phoneNumber;
+    this.payload = {
+      id: user.id,
+      signedAt: new Date().toISOString(),
+    };
+    this.hasPhone = user.phoneNumber ? true : false;
   }
-
+  hasPhone: boolean;
   payload: JwtPayload;
 }

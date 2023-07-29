@@ -65,4 +65,10 @@ export class BetsController {
   async getTotalPredictions(@Req() req) {
     return this.betsService.getTotalPredictions(req.user.id);
   }
+
+  @Get('/participants')
+  @ApiOperation({ summary: '베팅 참여자 조회하기' })
+  async getParticipants() {
+    return this.betsService.getBetParticipants();
+  }
 }
