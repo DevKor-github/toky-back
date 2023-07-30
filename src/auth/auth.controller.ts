@@ -167,4 +167,12 @@ export class AuthController {
     const { id } = req.user;
     return await this.usersService.validateUser(id);
   }
+
+  @Get('/profile')
+  @UseGuards(AuthGuard('jwt'))
+  async getUserProfile(@Req() req) {
+    const { id } = req.user;
+    const user = await this.usersService.findUserById(id);
+    return { id: user.id, name: user.name, university: user.university };
+  }
 }
