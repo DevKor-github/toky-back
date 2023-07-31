@@ -153,4 +153,16 @@ export class PointsService {
 */
     return;
   }
+
+  async getMyPoint(user: UserEntity) {
+    const result = await this.userRepository.findOne({
+      select: ['point'],
+      relations: {
+        point: true,
+      },
+      where: { id: user.id },
+    });
+    const { remainingPoint, totalPoint } = result.point;
+    return { remainingPoint, totalPoint };
+  }
 }
