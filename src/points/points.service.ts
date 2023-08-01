@@ -104,9 +104,8 @@ export class PointsService {
     return { users: result };
   }
 
-  async drawForGift(giftId: number, user: UserEntity) {
+  async drawForGift(giftId: number, id: string) {
     //해당 경품 번호가 있는지 확인
-    /*
     const gift = await this.giftRepository.findOne({
       where: {
         id: giftId,
@@ -117,15 +116,15 @@ export class PointsService {
       throw new NotFoundException('Not found giftId');
     }
 
-    const userWithPoint = await this.userRepository.findOne({
-      where: { id: user.id },
+    const user = await this.userRepository.findOne({
+      where: { id },
       relations: {
         point: true,
       },
     });
 
     //remaining poit가 응모 포인트보다 큰지 확인
-    if (userWithPoint.point.remainingPoint < gift.requiredPoint) {
+    if (user.point.remainingPoint < gift.requiredPoint) {
       throw new BadRequestException('Not Enough point to draw');
     }
 
@@ -133,7 +132,7 @@ export class PointsService {
     await this.dataSource
       .transaction(async (manager) => {
         //포인트 삭감
-        userWithPoint.point.remainingPoint -= gift.requiredPoint;
+        user.point.remainingPoint -= gift.requiredPoint;
 
         //응모 정보 생성
         const draw = await manager.create(DrawEntity, {
@@ -143,19 +142,19 @@ export class PointsService {
 
         //포인트 내역 생성
         const history = await manager.create(HistoryEntity, {
-          usage: 1,
-          usedPoint: gift.requiredPoint,
+          detail: gift.name,
+          usedPoint: -gift.requiredPoint,
+          remainedPoint: user.point.remainingPoint,
           user,
         });
 
-        await manager.save(userWithPoint);
+        await manager.save(user);
         await manager.save(draw);
         await manager.save(history);
       })
       .catch((e) => {
         console.error(e);
       });
-*/
     return;
   }
 
