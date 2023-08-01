@@ -32,7 +32,10 @@ export class UsersService {
   }
 
   async findUserById(id: string) {
-    return await this.userRepository.findOne({ where: { id } });
+    return await this.userRepository.findOne({
+      where: { id },
+      relations: ['point'],
+    });
   }
 
   async isValidName(name: string) {

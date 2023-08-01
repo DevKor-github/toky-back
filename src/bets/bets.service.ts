@@ -185,7 +185,7 @@ export class BetsService {
 
       const history = this.historyRepository.create({
         user: { id: userid },
-
+        remainedPoint: user.point.remainingPoint,
         detail: `${
           MatchMap[`${parseInt(((questionId - 1) / 5).toString())}`]
         } 종목 ${(questionId % 5) + 1}번 예측 참여로 10포인트 획득하였습니다.`,

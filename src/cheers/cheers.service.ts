@@ -11,8 +11,6 @@ export class CheersService {
   constructor(
     @InjectRepository(CheerEntity)
     private readonly cheerRepository: Repository<CheerEntity>,
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
   ) {}
 
   async cheerUniv(cheerDto: CheerDto, userId: string) {
@@ -23,23 +21,29 @@ export class CheersService {
       existingRecord.univ = cheerDto.univ;
       await this.cheerRepository.save(existingRecord);
     } else {
-      const cheer = new CheerEntity();
-      cheer.univ = cheerDto.univ;
-      cheer.user = await this.userRepository.findOne({ where: { id: userId } });
-      await this.cheerRepository.save(cheer);
+      const newRecord = await this.cheerRepository.create({
+        univ: cheerDto.univ,
+        user: { id: userId },
+      });
+      await this.cheerRepository.save(newRecord);
     }
-
-    return await this.getRate();
   }
 
   // TODO: 캐싱이라던지.. 좀 더 효율이 필요.
-  async getRate() {
+  async getRate(userid: string) {
+    const cheering = await this.cheerRepository.findOne({
+      where: { user: { id: userid } },
+    });
+
     const korea = await this.cheerRepository.count({
       where: { univ: University.Korea },
     });
     const yonsei = await this.cheerRepository.count({
       where: { univ: University.Yonsei },
     });
-    return (korea + yonsei) / korea;
+    return {
+      cheering: cheering ? cheering.univ : null,
+      participants: [korea, yonsei],
+    };
   }
 }
