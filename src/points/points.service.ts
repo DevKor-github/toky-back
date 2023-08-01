@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Like, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { GiftEntity } from './entities/gift.entity';
 import { DrawEntity } from './entities/draw.entity';
@@ -19,6 +19,9 @@ export class PointsService {
     private readonly giftRepository: Repository<GiftEntity>,
     @InjectRepository(DrawEntity)
     private readonly drawRepository: Repository<DrawEntity>,
+    @InjectRepository(HistoryEntity)
+    private readonly historyRepository: Repository<HistoryEntity>,
+
     private readonly dataSource: DataSource,
   ) {}
 
@@ -156,25 +159,45 @@ export class PointsService {
     return;
   }
 
-  async getMyPoint(user: UserEntity) {
+  async getMyPoint(id: string) {
     const result = await this.userRepository.findOne({
       select: ['point'],
       relations: {
         point: true,
       },
-      where: { id: user.id },
+      where: { id: id },
     });
     const { remainingPoint, totalPoint } = result.point;
     return { remainingPoint, totalPoint };
   }
 
-  async getAllDrawParticipants() {
-    const result = await this.drawRepository
+  async getAllandMyDrawParticipants(id: string) {
+    const allResult = await this.drawRepository
       .createQueryBuilder('draw')
       .select('draw.gift_id AS giftId')
       .addSelect('COUNT(*) AS drawCount')
       .groupBy('draw.gift_id')
       .getRawMany();
+    const myResult = await this.drawRepository
+      .createQueryBuilder('draw')
+      .select('draw.gift_id AS giftId')
+      .addSelect('COUNT(*) AS drawCount')
+      .where('draw.user_id = :userId', { userId: id })
+      .groupBy('draw.gift_id')
+      .getRawMany();
+    return [allResult, myResult];
+  }
+
+  async getMyPointHistory(id: string, page: number) {
+    const take = 10;
+    const result = await this.historyRepository
+      .createQueryBuilder('history')
+      .where('history.user_id = :userId', { userId: id })
+      .orderBy('created_at', 'DESC')
+      .take(take)
+      .skip((page - 1) * take)
+      .getMany();
+    console.log(result);
     return result;
   }
 }
