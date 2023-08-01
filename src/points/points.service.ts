@@ -17,6 +17,8 @@ export class PointsService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(GiftEntity)
     private readonly giftRepository: Repository<GiftEntity>,
+    @InjectRepository(DrawEntity)
+    private readonly drawRepository: Repository<DrawEntity>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -164,5 +166,15 @@ export class PointsService {
     });
     const { remainingPoint, totalPoint } = result.point;
     return { remainingPoint, totalPoint };
+  }
+
+  async getAllDrawParticipants() {
+    const result = await this.drawRepository
+      .createQueryBuilder('draw')
+      .select('draw.gift_id AS giftId')
+      .addSelect('COUNT(*) AS drawCount')
+      .groupBy('draw.gift_id')
+      .getRawMany();
+    return result;
   }
 }
