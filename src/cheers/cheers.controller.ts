@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation } from '@nestjs/swagger';
 import { CheerDto } from './dto/cheer.dto';
@@ -12,6 +12,13 @@ export class CheersController {
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ description: '응원하기' })
   async drawForGift(@Body() cheerDto: CheerDto, @Req() req) {
-    return this.cheerService.cheerUniv(cheerDto, req.user.id);
+    await this.cheerService.cheerUniv(cheerDto, req.user.id);
+  }
+
+  @Get('/participants')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ description: '응원 참여자 조회하기' })
+  async getParticipants(@Req() req) {
+    return await this.cheerService.getRate(req.user.id);
   }
 }
