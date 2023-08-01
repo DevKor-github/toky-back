@@ -17,6 +17,13 @@ import { AuthGuard } from '@nestjs/passport';
 export class PointsController {
   constructor(private readonly pointsService: PointsService) {}
 
+  @Get('/gifts')
+  @ApiOperation({ description: '경품 리스트 조회' })
+  @UseGuards(AuthGuard('jwt'))
+  async getGifts() {
+    return this.pointsService.getGifts();
+  }
+
   @Get('/rank')
   @ApiOperation({ description: '전체 랭킹 조회' })
   async getRanking(@Query('page', ParseIntPipe) page?: number) {

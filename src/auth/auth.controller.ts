@@ -171,6 +171,12 @@ export class AuthController {
   async getUserProfile(@Req() req) {
     const { id } = req.user;
     const user = await this.usersService.findUserById(id);
-    return { name: user.name, university: user.university };
+
+    return {
+      name: user.name,
+      university: user.university,
+      score: user.point.totalPoint,
+      remain: user.point.remainingPoint,
+    };
   }
 }

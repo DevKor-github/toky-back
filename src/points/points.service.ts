@@ -185,6 +185,7 @@ export class PointsService {
       .where('draw.user_id = :userId', { userId: id })
       .groupBy('draw.gift_id')
       .getRawMany();
+
     return [allResult, myResult];
   }
 
@@ -198,6 +199,11 @@ export class PointsService {
       .skip((page - 1) * take)
       .getMany();
     console.log(result);
+    return result;
+  }
+
+  async getGifts() {
+    const result = await this.giftRepository.find();
     return result;
   }
 }
