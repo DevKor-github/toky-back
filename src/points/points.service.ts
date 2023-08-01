@@ -177,4 +177,14 @@ export class PointsService {
       .getRawMany();
     return result;
   }
+  async getMyDrawParticipants(user: UserEntity) {
+    const result = await this.drawRepository
+      .createQueryBuilder('draw')
+      .select('draw.gift_id AS giftId')
+      .addSelect('COUNT(*) AS drawCount')
+      .where('draw.user_id = :userId', { userId: user.id })
+      .groupBy('draw.gift_id')
+      .getRawMany();
+    console.log(result);
+  }
 }

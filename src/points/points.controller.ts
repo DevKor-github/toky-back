@@ -42,9 +42,16 @@ export class PointsController {
   async getMyPoint(@Req() req) {
     return this.pointsService.getMyPoint(req.user);
   }
+
   @Get('/draw/all')
   @ApiOperation({ description: '각 경품들 모든 응모 조회' })
   async getAllDrawParticipants() {
     return this.pointsService.getAllDrawParticipants();
+  }
+  @Get('/draw')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ description: '본인 응모 수 확인' })
+  async getMyDrawParticipants(@Req() req) {
+    return this.pointsService.getMyDrawParticipants(req.user);
   }
 }
