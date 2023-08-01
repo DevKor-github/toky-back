@@ -42,22 +42,21 @@ export class PointsController {
   async getMyPoint(@Req() req) {
     return this.pointsService.getMyPoint(req.user);
   }
-  /*
-  @Get('/draw/all')
-  @ApiOperation({ description: '각 경품들 모든 응모 조회' })
-  async getAllDrawParticipants() {
-    return this.pointsService.getAllDrawParticipants();
-  }
-  @Get('/draw')
-  @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ description: '본인 응모 수 확인' })
-  async getMyDrawParticipants(@Req() req) {
-    return this.pointsService.getMyDrawParticipants(req.user);
-  }*/
+
   @Get('/draw')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ description: '본인 응모 및 전체 응모 수 확인' })
   async getMyDrawParticipants(@Req() req) {
     return this.pointsService.getAllandMyDrawParticipants(req.user);
+  }
+
+  @Get('/history')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ description: '본인 모든 히스토리 가져오기' })
+  async getMyPointHistory(
+    @Req() req,
+    @Query('page', ParseIntPipe) page?: number,
+  ) {
+    return this.pointsService.getMyPointHistory(req.user, page || 1);
   }
 }

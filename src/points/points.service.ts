@@ -19,6 +19,9 @@ export class PointsService {
     private readonly giftRepository: Repository<GiftEntity>,
     @InjectRepository(DrawEntity)
     private readonly drawRepository: Repository<DrawEntity>,
+    @InjectRepository(HistoryEntity)
+    private readonly historyRepository: Repository<HistoryEntity>,
+
     private readonly dataSource: DataSource,
   ) {}
 
@@ -167,26 +170,7 @@ export class PointsService {
     const { remainingPoint, totalPoint } = result.point;
     return { remainingPoint, totalPoint };
   }
-  /*
-  async getAllDrawParticipants() {
-    const result = await this.drawRepository
-      .createQueryBuilder('draw')
-      .select('draw.gift_id AS giftId')
-      .addSelect('COUNT(*) AS drawCount')
-      .groupBy('draw.gift_id')
-      .getRawMany();
-    return result;
-  }
-  async getMyDrawParticipants(user: UserEntity) {
-    const result = await this.drawRepository
-      .createQueryBuilder('draw')
-      .select('draw.gift_id AS giftId')
-      .addSelect('COUNT(*) AS drawCount')
-      .where('draw.user_id = :userId', { userId: user.id })
-      .groupBy('draw.gift_id')
-      .getRawMany();
-    return result;
-  }*/
+
   async getAllandMyDrawParticipants(user: UserEntity) {
     const allResult = await this.drawRepository
       .createQueryBuilder('draw')
@@ -202,5 +186,18 @@ export class PointsService {
       .groupBy('draw.gift_id')
       .getRawMany();
     return [allResult, myResult];
+  }
+
+  async getMyPointHistory(user: UserEntity, page: number) {
+    const take = 10;
+    const result = await this.historyRepository
+      .createQueryBuilder('history')
+      .where('history.user_id = :userId', { userId: user.id })
+      .orderBy('created_at', 'DESC')
+      .take(take)
+      .skip((page - 1) * take)
+      .getMany();
+    console.log(result);
+    return result;
   }
 }
