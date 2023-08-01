@@ -35,4 +35,16 @@ export class PointsController {
   async drawForGift(@Body() drawGiftDto: DrawGiftDto, @Req() req) {
     return this.pointsService.drawForGift(drawGiftDto.giftId, req.user);
   }
+
+  @Get('')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ description: '본인 포인트 조회' })
+  async getMyPoint(@Req() req) {
+    return this.pointsService.getMyPoint(req.user);
+  }
+  @Get('/draw/all')
+  @ApiOperation({ description: '각 경품들 모든 응모 조회' })
+  async getAllDrawParticipants() {
+    return this.pointsService.getAllDrawParticipants();
+  }
 }
