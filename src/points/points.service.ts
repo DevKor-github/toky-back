@@ -167,7 +167,7 @@ export class PointsService {
     const { remainingPoint, totalPoint } = result.point;
     return { remainingPoint, totalPoint };
   }
-
+  /*
   async getAllDrawParticipants() {
     const result = await this.drawRepository
       .createQueryBuilder('draw')
@@ -185,6 +185,22 @@ export class PointsService {
       .where('draw.user_id = :userId', { userId: user.id })
       .groupBy('draw.gift_id')
       .getRawMany();
-    console.log(result);
+    return result;
+  }*/
+  async getAllandMyDrawParticipants(user: UserEntity) {
+    const allResult = await this.drawRepository
+      .createQueryBuilder('draw')
+      .select('draw.gift_id AS giftId')
+      .addSelect('COUNT(*) AS drawCount')
+      .groupBy('draw.gift_id')
+      .getRawMany();
+    const myResult = await this.drawRepository
+      .createQueryBuilder('draw')
+      .select('draw.gift_id AS giftId')
+      .addSelect('COUNT(*) AS drawCount')
+      .where('draw.user_id = :userId', { userId: user.id })
+      .groupBy('draw.gift_id')
+      .getRawMany();
+    return [allResult, myResult];
   }
 }
