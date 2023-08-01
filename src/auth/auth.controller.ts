@@ -108,11 +108,9 @@ export class AuthController {
 
   @Get('/logout')
   @UseGuards(AuthGuard('jwt'))
-  async logout(@Req() req, @Res() res) {
+  async logout(@Req() req) {
     const { id } = req.user;
     await this.authService.removeRefreshToken(id);
-
-    res.redirect(process.env.DOMAIN);
   }
 
   @Post('/signup')
