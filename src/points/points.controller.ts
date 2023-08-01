@@ -35,4 +35,28 @@ export class PointsController {
   async drawForGift(@Body() drawGiftDto: DrawGiftDto, @Req() req) {
     return this.pointsService.drawForGift(drawGiftDto.giftId, req.user);
   }
+
+  @Get('')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ description: '본인 포인트 조회' })
+  async getMyPoint(@Req() req) {
+    return this.pointsService.getMyPoint(req.user.id);
+  }
+
+  @Get('/draw')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ description: '본인 응모 및 전체 응모 수 확인' })
+  async getMyDrawParticipants(@Req() req) {
+    return this.pointsService.getAllandMyDrawParticipants(req.user.id);
+  }
+
+  @Get('/history')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ description: '본인 모든 히스토리 가져오기' })
+  async getMyPointHistory(
+    @Req() req,
+    @Query('page', ParseIntPipe) page?: number,
+  ) {
+    return this.pointsService.getMyPointHistory(req.user.id, page || 1);
+  }
 }

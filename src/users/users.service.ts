@@ -68,6 +68,7 @@ export class UsersService {
     const historyEntity = await this.historyRepository.create({
       detail: '가입 완료 시 지급',
       usedPoint: 100,
+      remainedPoint: 100,
       user: user,
     });
     await this.historyRepository.save(historyEntity);
