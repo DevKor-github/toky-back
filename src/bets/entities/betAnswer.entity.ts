@@ -20,7 +20,7 @@ export class BetAnswerEntity {
   @JoinColumn({ name: 'user_id' }) //
   user: UserEntity;
 
-  @ManyToOne((type) => BetQuestionEntity, (question) => question.betDetails) //many to one bet item
+  @ManyToOne((type) => BetQuestionEntity, (question) => question.betAnswers) //many to one bet item
   @JoinColumn({ name: 'question_id' })
   question: BetQuestionEntity;
 }

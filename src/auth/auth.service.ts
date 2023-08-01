@@ -138,6 +138,7 @@ export class AuthService {
       // TODO: 에러
       throw new Error('유효 시간이 지났습니다. 인증번호를 다시 요청해주세요.');
     }
+
     if (phone.isValid) {
       // TODO: 에러
       throw new Error('이미 인증된 번호입니다.');
@@ -147,6 +148,4 @@ export class AuthService {
     await this.phoneRepository.save(phone);
     return true;
   }
-
-  
 }
