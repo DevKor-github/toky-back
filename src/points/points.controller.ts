@@ -40,7 +40,7 @@ export class PointsController {
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ description: '경품 응모' })
   async drawForGift(@Body() drawGiftDto: DrawGiftDto, @Req() req) {
-    return this.pointsService.drawForGift(drawGiftDto.giftId, req.user);
+    return this.pointsService.drawForGift(drawGiftDto.giftId, req.user.id);
   }
 
   @Get('')
