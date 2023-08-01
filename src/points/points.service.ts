@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Like, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { GiftEntity } from './entities/gift.entity';
 import { DrawEntity } from './entities/draw.entity';
@@ -159,19 +159,19 @@ export class PointsService {
     return;
   }
 
-  async getMyPoint(user: UserEntity) {
+  async getMyPoint(id: string) {
     const result = await this.userRepository.findOne({
       select: ['point'],
       relations: {
         point: true,
       },
-      where: { id: user.id },
+      where: { id: id },
     });
     const { remainingPoint, totalPoint } = result.point;
     return { remainingPoint, totalPoint };
   }
 
-  async getAllandMyDrawParticipants(user: UserEntity) {
+  async getAllandMyDrawParticipants(id: string) {
     const allResult = await this.drawRepository
       .createQueryBuilder('draw')
       .select('draw.gift_id AS giftId')
@@ -182,17 +182,17 @@ export class PointsService {
       .createQueryBuilder('draw')
       .select('draw.gift_id AS giftId')
       .addSelect('COUNT(*) AS drawCount')
-      .where('draw.user_id = :userId', { userId: user.id })
+      .where('draw.user_id = :userId', { userId: id })
       .groupBy('draw.gift_id')
       .getRawMany();
     return [allResult, myResult];
   }
 
-  async getMyPointHistory(user: UserEntity, page: number) {
+  async getMyPointHistory(id: string, page: number) {
     const take = 10;
     const result = await this.historyRepository
       .createQueryBuilder('history')
-      .where('history.user_id = :userId', { userId: user.id })
+      .where('history.user_id = :userId', { userId: id })
       .orderBy('created_at', 'DESC')
       .take(take)
       .skip((page - 1) * take)
