@@ -9,6 +9,7 @@ import { UserEntity } from 'src/users/entities/user.entity';
 import { GiftEntity } from './entities/gift.entity';
 import { DrawEntity } from './entities/draw.entity';
 import { HistoryEntity } from './entities/history.entity';
+import { DrawGiftDto } from './dto/draw-gift.dto';
 
 @Injectable()
 export class PointsService {
@@ -104,18 +105,7 @@ export class PointsService {
     return { users: result };
   }
 
-  async drawForGift(giftId: number, id: string) {
-    //해당 경품 번호가 있는지 확인
-    const gift = await this.giftRepository.findOne({
-      where: {
-        id: giftId,
-      },
-    });
-
-    if (!gift) {
-      throw new NotFoundException('Not found giftId');
-    }
-
+  async drawForGift(draws: DrawGiftDto[], id: string) {
     const user = await this.userRepository.findOne({
       where: { id },
       relations: {
@@ -123,39 +113,52 @@ export class PointsService {
       },
     });
 
-    //remaining poit가 응모 포인트보다 큰지 확인
-    if (user.point.remainingPoint < gift.requiredPoint) {
-      throw new BadRequestException('Not Enough point to draw');
-    }
-
-    //경품 응모 트랜잭션 생성
     await this.dataSource
       .transaction(async (manager) => {
-        //포인트 삭감
-        user.point.remainingPoint -= gift.requiredPoint;
+        for (let i = 0; i < draws.length; i++) {
+          const { giftId, count } = draws[i];
+          const gift = await this.giftRepository.findOne({
+            where: {
+              id: giftId,
+            },
+          });
 
-        //응모 정보 생성
-        const draw = await manager.create(DrawEntity, {
-          user,
-          gift,
-        });
+          if (!gift) {
+            throw new NotFoundException(`Not found giftId ${giftId}`);
+          }
 
-        //포인트 내역 생성
-        const history = await manager.create(HistoryEntity, {
-          detail: gift.name,
-          usedPoint: -gift.requiredPoint,
-          remainedPoint: user.point.remainingPoint,
-          user,
-        });
+          if (user.point.remainingPoint < gift.requiredPoint * count) {
+            throw new BadRequestException('Not Enough point to draw');
+          }
+
+          for (let j = 0; j < count; j++) {
+            //포인트 삭감
+            user.point.remainingPoint -= gift.requiredPoint;
+
+            //응모 정보 생성
+            const draw = await manager.create(DrawEntity, {
+              user,
+              gift,
+            });
+
+            //포인트 내역 생성
+            const history = await manager.create(HistoryEntity, {
+              detail: gift.name,
+              usedPoint: -gift.requiredPoint,
+              remainedPoint: user.point.remainingPoint,
+              user,
+            });
+
+            await manager.save(draw);
+            await manager.save(history);
+          }
+        }
 
         await manager.save(user);
-        await manager.save(draw);
-        await manager.save(history);
       })
       .catch((e) => {
         console.error(e);
       });
-    return;
   }
 
   async getMyPoint(id: string) {
