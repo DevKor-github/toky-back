@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, LessThan, MoreThan, Repository } from 'typeorm';
+import { DataSource, MoreThan, Repository } from 'typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { GiftEntity } from './entities/gift.entity';
 import { DrawEntity } from './entities/draw.entity';
@@ -22,6 +22,7 @@ export class PointsService {
     private readonly drawRepository: Repository<DrawEntity>,
     @InjectRepository(HistoryEntity)
     private readonly historyRepository: Repository<HistoryEntity>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async getRanking(page: number) {
