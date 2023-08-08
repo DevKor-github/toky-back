@@ -38,7 +38,7 @@ export class PointsController {
     const rank = await this.pointsService.getRankByName(name);
     if (rank < 0) return null;
 
-    return this.pointsService.getRankingListByRank(rank);
+    return this.pointsService.getRankingListByRankAndName(rank, name);
   }
 
   @Get('/rank/my')
@@ -48,7 +48,7 @@ export class PointsController {
     const rank = await this.pointsService.getRankById(req.user.id);
     if (rank < 0) return null;
 
-    return this.pointsService.getRankingListByRank(rank);
+    return this.pointsService.getRankingListByRankAndId(rank, req.user.id);
   }
 
   @Get('/rank/info')

@@ -42,13 +42,27 @@ export class PointsService {
       skip: (page - 1) * take,
     });
 
-    const result = users.map((user, idx) => ({
-      id: user.id,
-      name: user.name,
-      university: user.university,
-      point: user.point.totalPoint,
-      rank: (page - 1) * take + idx + 1,
-    }));
+    const topRank = await this.getRankById(users[0].id);
+
+    const result = users.map((user, idx, array) => {
+      let rank = (page - 1) * take + idx + 1;
+      let i = 1;
+      while (
+        idx - i >= 0 &&
+        array[idx - i].point.totalPoint === user.point.totalPoint
+      ) {
+        rank--;
+        i++;
+      }
+      if (idx - i <= 0 && array[0].point.totalPoint === user.point.totalPoint)
+        rank = topRank;
+      return {
+        name: user.name,
+        university: user.university,
+        point: user.point.totalPoint,
+        rank: rank,
+      };
+    });
 
     return {
       users: result,
@@ -57,10 +71,11 @@ export class PointsService {
       last_page: Math.ceil(total / take),
     };
   }
-  async getRankingListByRank(rank: number) {
+
+  async getRankingListByRankAndId(rank: number, id: string) {
     const TAKE = 10;
-    const page = Math.floor(rank / TAKE);
-    const [users, total] = await this.userRepository.findAndCount({
+    let page = Math.floor(rank / TAKE);
+    let [users, total] = await this.userRepository.findAndCount({
       select: ['id', 'name', 'university', 'point'],
       relations: {
         point: true,
@@ -69,22 +84,121 @@ export class PointsService {
         point: {
           totalPoint: 'DESC',
         },
+        name: 'DESC',
       },
       take: TAKE,
       skip: page * TAKE,
     });
-    const result = users.map((user, idx) => ({
-      id: user.id,
-      name: user.name,
-      university: user.university,
-      point: user.point.totalPoint,
-      rank: page * TAKE + idx + 1,
-    }));
+    while (users.findIndex((user) => user.id === id) === -1) {
+      page++;
+      [users, total] = await this.userRepository.findAndCount({
+        select: ['id', 'name', 'university', 'point'],
+        relations: {
+          point: true,
+        },
+        order: {
+          point: {
+            totalPoint: 'DESC',
+          },
+          name: 'DESC',
+        },
+        take: TAKE,
+        skip: page * TAKE,
+      });
+    }
+
+    const topRank = await this.getRankById(users[0].id);
+    const result = users.map((user, idx, array) => {
+      let rank = page * TAKE + idx + 1;
+      let i = 1;
+      while (
+        idx - i >= 0 &&
+        array[idx - i].point.totalPoint === user.point.totalPoint
+      ) {
+        rank--;
+        i++;
+      }
+      if (idx - i <= 0 && array[0].point.totalPoint === user.point.totalPoint)
+        rank = topRank;
+      return {
+        name: user.name,
+        university: user.university,
+        point: user.point.totalPoint,
+        rank: rank,
+      };
+    });
 
     return {
       users: result,
       total,
       page: page + 1,
+      rank: rank,
+      last_page: Math.ceil(total / TAKE),
+    };
+  }
+
+  async getRankingListByRankAndName(rank: number, name: string) {
+    const TAKE = 10;
+    let page = Math.floor(rank / TAKE);
+    let [users, total] = await this.userRepository.findAndCount({
+      select: ['id', 'name', 'university', 'point'],
+      relations: {
+        point: true,
+      },
+      order: {
+        point: {
+          totalPoint: 'DESC',
+        },
+        name: 'DESC',
+      },
+      take: TAKE,
+      skip: page * TAKE,
+    });
+
+    while (users.findIndex((user) => user.name === name) === -1) {
+      page++;
+      [users, total] = await this.userRepository.findAndCount({
+        select: ['id', 'name', 'university', 'point'],
+        relations: {
+          point: true,
+        },
+        order: {
+          point: {
+            totalPoint: 'DESC',
+          },
+          name: 'DESC',
+        },
+        take: TAKE,
+        skip: page * TAKE,
+      });
+    }
+
+    const topRank = await this.getRankById(users[0].id);
+    const result = users.map((user, idx, array) => {
+      let rank = page * TAKE + idx + 1;
+      let i = 1;
+      while (
+        idx - i >= 0 &&
+        array[idx - i].point.totalPoint === user.point.totalPoint
+      ) {
+        rank--;
+        i++;
+      }
+      if (idx - i <= 0 && array[0].point.totalPoint === user.point.totalPoint)
+        rank = topRank;
+      return {
+        name: user.name,
+        university: user.university,
+        point: user.point.totalPoint,
+        rank: rank,
+      };
+    });
+
+    return {
+      users: result,
+      total,
+      page: page + 1,
+      rank: rank,
       last_page: Math.ceil(total / TAKE),
     };
   }
@@ -158,12 +272,23 @@ export class PointsService {
       },
       take: TAKE,
     });
-    const result = users.map((user, idx) => ({
-      name: user.name,
-      university: user.university,
-      point: user.point.totalPoint,
-      rank: idx + 1,
-    }));
+    const result = users.map((user, idx, array) => {
+      let rank = idx + 1;
+      let i = 1;
+      while (
+        idx - i >= 0 &&
+        array[idx - i].point.totalPoint === user.point.totalPoint
+      ) {
+        rank--;
+        i++;
+      }
+      return {
+        name: user.name,
+        university: user.university,
+        point: user.point.totalPoint,
+        rank: rank,
+      };
+    });
 
     return {
       rank: rankingCount + 1,
