@@ -10,7 +10,7 @@ import {
 import { PointsService } from './points.service';
 import { ApiOperation } from '@nestjs/swagger';
 import { Req } from '@nestjs/common';
-import { DrawGiftDto } from './dto/draw-gift.dto';
+import { DrawGiftListDto } from './dto/draw-gift.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('points')
@@ -61,8 +61,8 @@ export class PointsController {
   @Post('/draw')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ description: '경품 응모' })
-  async drawForGift(@Body() drawGiftDto: DrawGiftDto, @Req() req) {
-    return this.pointsService.drawForGift(drawGiftDto.giftId, req.user);
+  async drawForGift(@Body() drawGiftListDto: DrawGiftListDto, @Req() req) {
+    return this.pointsService.drawForGift(drawGiftListDto.draws, req.user.id);
   }
 
   @Get('')

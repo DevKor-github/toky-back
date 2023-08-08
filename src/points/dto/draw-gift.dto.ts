@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsNotEmpty, IsNumber, ValidateNested } from 'class-validator';
 
 export class DrawGiftDto {
   @IsNumber()
@@ -8,4 +9,20 @@ export class DrawGiftDto {
     type: Number,
   })
   giftId!: number;
+
+  @IsNumber()
+  @ApiProperty({
+    description: '응모 횟수',
+    type: Number,
+  })
+  count!: number;
+}
+
+export class DrawGiftListDto {
+  @ApiProperty({ type: [DrawGiftDto] })
+  @IsArray()
+  @IsNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => DrawGiftDto)
+  draws: DrawGiftDto[];
 }
