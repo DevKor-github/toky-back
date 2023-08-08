@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, LessThan, MoreThan, Repository } from 'typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { GiftEntity } from './entities/gift.entity';
 import { DrawEntity } from './entities/draw.entity';
@@ -21,8 +21,6 @@ export class PointsService {
     private readonly drawRepository: Repository<DrawEntity>,
     @InjectRepository(HistoryEntity)
     private readonly historyRepository: Repository<HistoryEntity>,
-
-    private readonly dataSource: DataSource,
   ) {}
 
   async getRanking(page: number) {
@@ -57,9 +55,10 @@ export class PointsService {
       last_page: Math.ceil(total / take),
     };
   }
-
-  async searchRankingWithName(name: string) {
-    const users = await this.userRepository.find({
+  async getRankingListByRank(rank: number) {
+    const TAKE = 10;
+    const page = Math.floor(rank / TAKE);
+    const [users, total] = await this.userRepository.findAndCount({
       select: ['id', 'name', 'university', 'point'],
       relations: {
         point: true,
@@ -69,21 +68,84 @@ export class PointsService {
           totalPoint: 'DESC',
         },
       },
+      take: TAKE,
+      skip: page * TAKE,
+    });
+    const result = users.map((user, idx) => ({
+      id: user.id,
+      name: user.name,
+      university: user.university,
+      point: user.point.totalPoint,
+      rank: page * TAKE + idx + 1,
+    }));
+
+    return {
+      users: result,
+      total,
+      page: page + 1,
+      last_page: Math.ceil(total / TAKE),
+    };
+  }
+
+  async getRankByName(name: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        name: name,
+      },
+      relations: ['point'],
+    });
+    if (!user) return -1;
+
+    const rankingCount = await this.userRepository.count({
+      where: {
+        point: {
+          totalPoint: MoreThan(user.point.totalPoint),
+        },
+      },
     });
 
-    const result = users
-      .map((user, idx) => ({
-        id: user.id,
-        name: user.name,
-        university: user.university,
-        point: user.point.totalPoint,
-        rank: idx + 1,
-      }))
-      .filter((user) => user.name.includes(name));
+    return rankingCount + 1;
+  }
 
-    /*
-    const users = await this.userRepository.find({
-      where: { name: Like(`%${name}%`) },
+  async getRankById(id: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: id,
+      },
+      relations: ['point'],
+    });
+    if (!user) return -1;
+
+    const rankingCount = await this.userRepository.count({
+      where: {
+        point: {
+          totalPoint: MoreThan(user.point.totalPoint),
+        },
+      },
+    });
+
+    return rankingCount + 1;
+  }
+
+  async getRankInfo(id: string) {
+    const TAKE = 10;
+    const user = await this.userRepository.findOne({
+      where: {
+        id: id,
+      },
+      relations: ['point'],
+    });
+    if (!user) return -1;
+
+    const rankingCount = await this.userRepository.count({
+      where: {
+        point: {
+          totalPoint: MoreThan(user.point.totalPoint),
+        },
+      },
+    });
+    const [users, total] = await this.userRepository.findAndCount({
+      select: ['id', 'name', 'university', 'point'],
       relations: {
         point: true,
       },
@@ -92,16 +154,21 @@ export class PointsService {
           totalPoint: 'DESC',
         },
       },
+      take: TAKE,
     });
-
-    const result = users.map((user) => ({
-      id: user.id,
+    const result = users.map((user, idx) => ({
       name: user.name,
       university: user.university,
       point: user.point.totalPoint,
-    }));*/
+      rank: idx + 1,
+    }));
 
-    return { users: result };
+    return {
+      rank: rankingCount + 1,
+      point: user.point.totalPoint,
+      total: total,
+      rankList: result,
+    };
   }
 
   async drawForGift(giftId: number, user: UserEntity) {

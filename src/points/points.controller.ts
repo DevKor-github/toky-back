@@ -26,14 +26,36 @@ export class PointsController {
 
   @Get('/rank')
   @ApiOperation({ description: '전체 랭킹 조회' })
+  @UseGuards(AuthGuard('jwt'))
   async getRanking(@Query('page', ParseIntPipe) page?: number) {
     return this.pointsService.getRanking(page || 1);
   }
 
   @Get('/rank/search')
   @ApiOperation({ description: '닉네임으로 랭킹 검색' })
+  @UseGuards(AuthGuard('jwt'))
   async getRankingWithName(@Query('name') name: string) {
-    return this.pointsService.searchRankingWithName(name);
+    const rank = await this.pointsService.getRankByName(name);
+    if (rank < 0) return null;
+
+    return this.pointsService.getRankingListByRank(rank);
+  }
+
+  @Get('/rank/my')
+  @ApiOperation({ description: '본인 랭킹 조회' })
+  @UseGuards(AuthGuard('jwt'))
+  async getMyRanking(@Req() req) {
+    const rank = await this.pointsService.getRankById(req.user.id);
+    if (rank < 0) return null;
+
+    return this.pointsService.getRankingListByRank(rank);
+  }
+
+  @Get('/rank/info')
+  @ApiOperation({ description: '본인 포인트와 랭킹 조회' })
+  @UseGuards(AuthGuard('jwt'))
+  async getMyRankingWithPoint(@Req() req) {
+    return await this.pointsService.getRankInfo(req.user.id);
   }
 
   @Post('/draw')
