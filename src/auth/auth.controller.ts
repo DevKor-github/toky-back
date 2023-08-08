@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Post,
   Query,
   Req,
@@ -14,6 +15,7 @@ import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { PhoneDto } from './dto/phone.dto';
 import { JwtPayload } from 'src/common/interfaces/JwtPayload';
+import { UpdateNameDto } from './dto/update-name.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -177,6 +179,15 @@ export class AuthController {
       university: user.university,
       score: user.point.totalPoint,
       remain: user.point.remainingPoint,
+      phoneNumber: user.phoneNumber,
     };
+  }
+
+  @Patch('/update/name')
+  @UseGuards(AuthGuard('jwt'))
+  async updateName(@Req() req, @Body() updateNameDto: UpdateNameDto) {
+    const { id } = req.user;
+
+    return this.usersService.updateName(id, updateNameDto.name);
   }
 }

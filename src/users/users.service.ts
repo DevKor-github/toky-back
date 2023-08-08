@@ -86,4 +86,10 @@ export class UsersService {
     const user = await this.userRepository.findOne({ where: { id } });
     return user.phoneNumber ? true : false;
   }
+
+  async updateName(id: string, name: string) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    user.name = name;
+    await this.userRepository.save(user);
+  }
 }
