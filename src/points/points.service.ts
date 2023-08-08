@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, MoreThan, Repository } from 'typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { GiftEntity } from './entities/gift.entity';
 import { DrawEntity } from './entities/draw.entity';
@@ -22,7 +22,6 @@ export class PointsService {
     private readonly drawRepository: Repository<DrawEntity>,
     @InjectRepository(HistoryEntity)
     private readonly historyRepository: Repository<HistoryEntity>,
-
     private readonly dataSource: DataSource,
   ) {}
 
@@ -43,13 +42,27 @@ export class PointsService {
       skip: (page - 1) * take,
     });
 
-    const result = users.map((user, idx) => ({
-      id: user.id,
-      name: user.name,
-      university: user.university,
-      point: user.point.totalPoint,
-      rank: (page - 1) * take + idx + 1,
-    }));
+    const topRank = await this.getRankById(users[0].id);
+
+    const result = users.map((user, idx, array) => {
+      let rank = (page - 1) * take + idx + 1;
+      let i = 1;
+      while (
+        idx - i >= 0 &&
+        array[idx - i].point.totalPoint === user.point.totalPoint
+      ) {
+        rank--;
+        i++;
+      }
+      if (idx - i <= 0 && array[0].point.totalPoint === user.point.totalPoint)
+        rank = topRank;
+      return {
+        name: user.name,
+        university: user.university,
+        point: user.point.totalPoint,
+        rank: rank,
+      };
+    });
 
     return {
       users: result,
@@ -59,8 +72,195 @@ export class PointsService {
     };
   }
 
-  async searchRankingWithName(name: string) {
-    const users = await this.userRepository.find({
+  async getRankingListByRankAndId(rank: number, id: string) {
+    const TAKE = 10;
+    let page = Math.floor(rank / TAKE);
+    let [users, total] = await this.userRepository.findAndCount({
+      select: ['id', 'name', 'university', 'point'],
+      relations: {
+        point: true,
+      },
+      order: {
+        point: {
+          totalPoint: 'DESC',
+        },
+        name: 'DESC',
+      },
+      take: TAKE,
+      skip: page * TAKE,
+    });
+    while (users.findIndex((user) => user.id === id) === -1) {
+      page++;
+      [users, total] = await this.userRepository.findAndCount({
+        select: ['id', 'name', 'university', 'point'],
+        relations: {
+          point: true,
+        },
+        order: {
+          point: {
+            totalPoint: 'DESC',
+          },
+          name: 'DESC',
+        },
+        take: TAKE,
+        skip: page * TAKE,
+      });
+    }
+
+    const topRank = await this.getRankById(users[0].id);
+    const result = users.map((user, idx, array) => {
+      let rank = page * TAKE + idx + 1;
+      let i = 1;
+      while (
+        idx - i >= 0 &&
+        array[idx - i].point.totalPoint === user.point.totalPoint
+      ) {
+        rank--;
+        i++;
+      }
+      if (idx - i <= 0 && array[0].point.totalPoint === user.point.totalPoint)
+        rank = topRank;
+      return {
+        name: user.name,
+        university: user.university,
+        point: user.point.totalPoint,
+        rank: rank,
+      };
+    });
+
+    return {
+      users: result,
+      total,
+      page: page + 1,
+      rank: rank,
+      last_page: Math.ceil(total / TAKE),
+    };
+  }
+
+  async getRankingListByRankAndName(rank: number, name: string) {
+    const TAKE = 10;
+    let page = Math.floor(rank / TAKE);
+    let [users, total] = await this.userRepository.findAndCount({
+      select: ['id', 'name', 'university', 'point'],
+      relations: {
+        point: true,
+      },
+      order: {
+        point: {
+          totalPoint: 'DESC',
+        },
+        name: 'DESC',
+      },
+      take: TAKE,
+      skip: page * TAKE,
+    });
+
+    while (users.findIndex((user) => user.name === name) === -1) {
+      page++;
+      [users, total] = await this.userRepository.findAndCount({
+        select: ['id', 'name', 'university', 'point'],
+        relations: {
+          point: true,
+        },
+        order: {
+          point: {
+            totalPoint: 'DESC',
+          },
+          name: 'DESC',
+        },
+        take: TAKE,
+        skip: page * TAKE,
+      });
+    }
+
+    const topRank = await this.getRankById(users[0].id);
+    const result = users.map((user, idx, array) => {
+      let rank = page * TAKE + idx + 1;
+      let i = 1;
+      while (
+        idx - i >= 0 &&
+        array[idx - i].point.totalPoint === user.point.totalPoint
+      ) {
+        rank--;
+        i++;
+      }
+      if (idx - i <= 0 && array[0].point.totalPoint === user.point.totalPoint)
+        rank = topRank;
+      return {
+        name: user.name,
+        university: user.university,
+        point: user.point.totalPoint,
+        rank: rank,
+      };
+    });
+
+    return {
+      users: result,
+      total,
+      page: page + 1,
+      rank: rank,
+      last_page: Math.ceil(total / TAKE),
+    };
+  }
+
+  async getRankByName(name: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        name: name,
+      },
+      relations: ['point'],
+    });
+    if (!user) return -1;
+
+    const rankingCount = await this.userRepository.count({
+      where: {
+        point: {
+          totalPoint: MoreThan(user.point.totalPoint),
+        },
+      },
+    });
+
+    return rankingCount + 1;
+  }
+
+  async getRankById(id: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: id,
+      },
+      relations: ['point'],
+    });
+    if (!user) return -1;
+
+    const rankingCount = await this.userRepository.count({
+      where: {
+        point: {
+          totalPoint: MoreThan(user.point.totalPoint),
+        },
+      },
+    });
+
+    return rankingCount + 1;
+  }
+
+  async getRankInfo(id: string) {
+    const TAKE = 10;
+    const user = await this.userRepository.findOne({
+      where: {
+        id: id,
+      },
+      relations: ['point'],
+    });
+    if (!user) return -1;
+
+    const rankingCount = await this.userRepository.count({
+      where: {
+        point: {
+          totalPoint: MoreThan(user.point.totalPoint),
+        },
+      },
+    });
+    const [users, total] = await this.userRepository.findAndCount({
       select: ['id', 'name', 'university', 'point'],
       relations: {
         point: true,
@@ -70,39 +270,32 @@ export class PointsService {
           totalPoint: 'DESC',
         },
       },
+      take: TAKE,
     });
-
-    const result = users
-      .map((user, idx) => ({
-        id: user.id,
+    const result = users.map((user, idx, array) => {
+      let rank = idx + 1;
+      let i = 1;
+      while (
+        idx - i >= 0 &&
+        array[idx - i].point.totalPoint === user.point.totalPoint
+      ) {
+        rank--;
+        i++;
+      }
+      return {
         name: user.name,
         university: user.university,
         point: user.point.totalPoint,
-        rank: idx + 1,
-      }))
-      .filter((user) => user.name.includes(name));
-
-    /*
-    const users = await this.userRepository.find({
-      where: { name: Like(`%${name}%`) },
-      relations: {
-        point: true,
-      },
-      order: {
-        point: {
-          totalPoint: 'DESC',
-        },
-      },
+        rank: rank,
+      };
     });
 
-    const result = users.map((user) => ({
-      id: user.id,
-      name: user.name,
-      university: user.university,
+    return {
+      rank: rankingCount + 1,
       point: user.point.totalPoint,
-    }));*/
-
-    return { users: result };
+      total: total,
+      rankList: result,
+    };
   }
 
   async drawForGift(draws: DrawGiftDto[], id: string) {
