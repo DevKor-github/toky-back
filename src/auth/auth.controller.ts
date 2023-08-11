@@ -45,14 +45,14 @@ export class AuthController {
       sameSite: 'none',
       secure: true,
       httpOnly: false,
-      domain: process.env.DOMAIN,
+      domain: 'toky.devkor.club',
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
       sameSite: 'none',
       secure: true,
       httpOnly: false,
-      domain: process.env.DOMAIN,
+      domain: 'toky.devkor.club',
     });
     await this.authService.saveRefreshToken(
       token.refreshToken,
@@ -83,14 +83,14 @@ export class AuthController {
       sameSite: 'none',
       secure: true,
       httpOnly: false,
-      domain: process.env.DOMAIN,
+      domain: 'toky.devkor.club',
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
       sameSite: 'none',
       secure: true,
       httpOnly: false,
-      domain: process.env.DOMAIN,
+      domain: 'toky.devkor.club',
     });
 
     await this.authService.saveRefreshToken(
