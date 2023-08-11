@@ -16,6 +16,7 @@ import { SignupDto } from './dto/signup.dto';
 import { PhoneDto } from './dto/phone.dto';
 import { JwtPayload } from 'src/common/interfaces/JwtPayload';
 import { UpdateNameDto } from './dto/update-name.dto';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -35,7 +36,7 @@ export class AuthController {
 
   @Get('/kakao/redirect')
   @UseGuards(AuthGuard('kakao'))
-  async kakaoLoginRedirect(@Req() req, @Res() res) {
+  async kakaoLoginRedirect(@Req() req, @Res() res: Response) {
     const userInfoDto = await this.usersService.findOrCreateById(req.user.id);
 
     const token = await this.authService.getToken(userInfoDto.payload);
@@ -44,12 +45,14 @@ export class AuthController {
       sameSite: 'none',
       secure: true,
       httpOnly: false,
+      domain: process.env.DOMAIN,
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
       sameSite: 'none',
       secure: true,
       httpOnly: false,
+      domain: process.env.DOMAIN,
     });
     await this.authService.saveRefreshToken(
       token.refreshToken,
@@ -80,12 +83,14 @@ export class AuthController {
       sameSite: 'none',
       secure: true,
       httpOnly: false,
+      domain: process.env.DOMAIN,
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
       sameSite: 'none',
       secure: true,
       httpOnly: false,
+      domain: process.env.DOMAIN,
     });
 
     await this.authService.saveRefreshToken(
