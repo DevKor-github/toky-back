@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, MoreThan, Repository } from 'typeorm';
+import { DataSource, IsNull, MoreThan, Not, Repository } from 'typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { GiftEntity } from './entities/gift.entity';
 import { DrawEntity } from './entities/draw.entity';
@@ -37,6 +37,9 @@ export class PointsService {
         point: {
           totalPoint: 'DESC',
         },
+      },
+      where: {
+        point: Not(IsNull()),
       },
       take: take,
       skip: (page - 1) * take,
@@ -86,6 +89,9 @@ export class PointsService {
         },
         name: 'DESC',
       },
+      where: {
+        point: Not(IsNull()),
+      },
       take: TAKE,
       skip: page * TAKE,
     });
@@ -101,6 +107,9 @@ export class PointsService {
             totalPoint: 'DESC',
           },
           name: 'DESC',
+        },
+        where: {
+          point: Not(IsNull()),
         },
         take: TAKE,
         skip: page * TAKE,
@@ -151,6 +160,9 @@ export class PointsService {
         },
         name: 'DESC',
       },
+      where: {
+        point: Not(IsNull()),
+      },
       take: TAKE,
       skip: page * TAKE,
     });
@@ -167,6 +179,9 @@ export class PointsService {
             totalPoint: 'DESC',
           },
           name: 'DESC',
+        },
+        where: {
+          point: Not(IsNull()),
         },
         take: TAKE,
         skip: page * TAKE,
@@ -270,6 +285,9 @@ export class PointsService {
           totalPoint: 'DESC',
         },
       },
+      where: {
+        point: Not(IsNull()),
+      },
       take: TAKE,
     });
     const result = users.map((user, idx, array) => {
@@ -277,6 +295,7 @@ export class PointsService {
       let i = 1;
       while (
         idx - i >= 0 &&
+        array[idx - i].point &&
         array[idx - i].point.totalPoint === user.point.totalPoint
       ) {
         rank--;
