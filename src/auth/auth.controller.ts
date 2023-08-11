@@ -41,11 +41,13 @@ export class AuthController {
     const token = await this.authService.getToken(userInfoDto.payload);
     res.cookie('access-token', token.accessToken, {
       expires: new Date(Date.now() + 10000),
-      secure: false,
+      sameSite: 'none',
+      secure: true,
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 10000),
-      secure: false,
+      sameSite: 'none',
+      secure: true,
     });
     await this.authService.saveRefreshToken(
       token.refreshToken,
@@ -73,11 +75,13 @@ export class AuthController {
     const token = await this.authService.getToken(userInfoDto.payload);
     res.cookie('access-token', token.accessToken, {
       expires: new Date(Date.now() + 10000),
-      secure: false,
+      sameSite: 'none',
+      secure: true,
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 10000),
-      secure: false,
+      sameSite: 'none',
+      secure: true,
     });
 
     await this.authService.saveRefreshToken(
