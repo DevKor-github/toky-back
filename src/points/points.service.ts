@@ -10,6 +10,7 @@ import { GiftEntity } from './entities/gift.entity';
 import { DrawEntity } from './entities/draw.entity';
 import { HistoryEntity } from './entities/history.entity';
 import { DrawGiftDto } from './dto/draw-gift.dto';
+import { PointEntity } from './entities/point.entity';
 
 @Injectable()
 export class PointsService {
@@ -22,6 +23,8 @@ export class PointsService {
     private readonly drawRepository: Repository<DrawEntity>,
     @InjectRepository(HistoryEntity)
     private readonly historyRepository: Repository<HistoryEntity>,
+    @InjectRepository(PointEntity)
+    private readonly pointRepository: Repository<PointEntity>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -412,12 +415,110 @@ export class PointsService {
       .take(take)
       .skip((page - 1) * take)
       .getMany();
-    console.log(result);
-    return result;
+    return result.map((history) => {
+      return {
+        id: history.id,
+        detail: history.detail,
+        usedPoint: history.usedPoint,
+        remainedPoint: history.remainedPoint,
+        createdAt: new Date(history.createdAt.getTime() + 9 * 60 * 60 * 1000),
+      };
+    });
   }
 
   async getGifts() {
     const result = await this.giftRepository.find();
     return result;
+  }
+
+  async getRankSharePoint(id: string) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['point'],
+    });
+    if (!user) {
+      throw new NotFoundException('Not found user');
+    }
+    if (!user.lastShareRank) {
+      user.lastShareRank = new Date();
+      await this.userRepository.save(user);
+
+      user.point.totalPoint += 300;
+      user.point.remainingPoint += 300;
+      await this.pointRepository.save(user.point);
+
+      const history = this.historyRepository.create({
+        user: { id },
+        remainedPoint: user.point.remainingPoint,
+        detail: `최초 랭킹 공유로 300포인트 획득하였습니다.`,
+        usedPoint: 300,
+      });
+      await this.historyRepository.save(history);
+      return 300;
+    } else if (
+      user.lastShareRank.getTime() <
+      new Date().getTime() - 1000 * 60 * 60 * 24
+    ) {
+      user.lastShareRank = new Date();
+      await this.userRepository.save(user);
+      user.point.totalPoint += 100;
+      user.point.remainingPoint += 100;
+      await this.pointRepository.save(user.point);
+
+      const history = this.historyRepository.create({
+        user: { id },
+        remainedPoint: user.point.remainingPoint,
+        detail: `랭킹 공유로 100포인트 획득하였습니다.`,
+        usedPoint: 100,
+      });
+      await this.historyRepository.save(history);
+      return 100;
+    } else return 0;
+  }
+
+  async getPredictionSharePoint(id: string) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['point'],
+    });
+    if (!user) {
+      throw new NotFoundException('Not found user');
+    }
+    console.log(user);
+    if (!user.lastSharePrediction) {
+      user.lastSharePrediction = new Date();
+      await this.userRepository.save(user);
+
+      user.point.totalPoint += 300;
+      user.point.remainingPoint += 300;
+      await this.pointRepository.save(user.point);
+
+      const history = this.historyRepository.create({
+        user: { id },
+        remainedPoint: user.point.remainingPoint,
+        detail: `최초 예측 공유로 300포인트 획득하였습니다.`,
+        usedPoint: 300,
+      });
+      await this.historyRepository.save(history);
+      return 300;
+    } else if (
+      user.lastSharePrediction.getTime() <
+      new Date().getTime() - 1000 * 60 * 60 * 24
+    ) {
+      user.lastSharePrediction = new Date();
+      await this.userRepository.save(user);
+      user.point.totalPoint += 100;
+      user.point.remainingPoint += 100;
+      await this.pointRepository.save(user.point);
+
+      const history = this.historyRepository.create({
+        user: { id },
+        remainedPoint: user.point.remainingPoint,
+        detail: `예측 공유로 100포인트 획득하였습니다.`,
+        usedPoint: 100,
+      });
+      await this.historyRepository.save(history);
+      return 100;
+    } else return 0;
   }
 }

@@ -62,6 +62,9 @@ export class PointsController {
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ description: '경품 응모' })
   async drawForGift(@Body() drawGiftListDto: DrawGiftListDto, @Req() req) {
+    if (new Date('2023-09-15T15:00:00Z').getTime() < Date.now()) {
+      return { message: '응모 기간이 아닙니다.' };
+    }
     return this.pointsService.drawForGift(drawGiftListDto.draws, req.user.id);
   }
 
@@ -87,5 +90,25 @@ export class PointsController {
     @Query('page', ParseIntPipe) page?: number,
   ) {
     return this.pointsService.getMyPointHistory(req.user.id, page || 1);
+  }
+
+  @Get('/share/rank')
+  @UseGuards(AuthGuard('jwt'))
+  async getShareRanking(@Req() req) {
+    try {
+      return await this.pointsService.getRankSharePoint(req.user.id);
+    } catch (e) {
+      return e.message;
+    }
+  }
+
+  @Get('/share/prediction')
+  @UseGuards(AuthGuard('jwt'))
+  async getSharePrediction(@Req() req) {
+    try {
+      return await this.pointsService.getPredictionSharePoint(req.user.id);
+    } catch (e) {
+      return e.message;
+    }
   }
 }
