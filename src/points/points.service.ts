@@ -412,8 +412,15 @@ export class PointsService {
       .take(take)
       .skip((page - 1) * take)
       .getMany();
-    console.log(result);
-    return result;
+    return result.map((history) => {
+      return {
+        id: history.id,
+        detail: history.detail,
+        usedPoint: history.usedPoint,
+        remainedPoint: history.remainedPoint,
+        createdAt: new Date(history.createdAt.getTime() + 9 * 60 * 60 * 1000),
+      };
+    });
   }
 
   async getGifts() {
