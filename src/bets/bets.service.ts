@@ -188,7 +188,7 @@ export class BetsService {
         remainedPoint: user.point.remainingPoint,
         detail: `${
           MatchMap[`${parseInt(((questionId - 1) / 5).toString())}`]
-        } 종목 ${(questionId % 5) + 1}번 예측 참여로 10포인트 획득하였습니다.`,
+        } 종목 ${questionId % 5}번 예측 참여로 10포인트 획득하였습니다.`,
         usedPoint: 10,
       });
       await this.historyRepository.save(history);
