@@ -363,7 +363,7 @@ export class PointsService {
 
             //포인트 내역 생성
             const history = await manager.create(HistoryEntity, {
-              detail: gift.name,
+              detail: `${gift.name} 경품 응모 참여!`,
               usedPoint: -gift.requiredPoint,
               remainedPoint: user.point.remainingPoint,
               user,

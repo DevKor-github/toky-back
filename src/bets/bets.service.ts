@@ -179,8 +179,8 @@ export class BetsService {
         where: { id: userid },
         relations: ['point'],
       });
-      user.point.totalPoint += 10;
-      user.point.remainingPoint += 10;
+      user.point.totalPoint += 50;
+      user.point.remainingPoint += 50;
       await this.pointRepository.save(user.point);
 
       const history = this.historyRepository.create({
@@ -188,8 +188,8 @@ export class BetsService {
         remainedPoint: user.point.remainingPoint,
         detail: `${
           MatchMap[`${parseInt(((questionId - 1) / 5).toString())}`]
-        } 종목 ${questionId % 5}번 예측 참여로 10포인트 획득하였습니다.`,
-        usedPoint: 10,
+        } 종목 ${questionId % 5}번 예측 참여로 50포인트 획득`,
+        usedPoint: 50,
       });
       await this.historyRepository.save(history);
 
