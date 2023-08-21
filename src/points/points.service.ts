@@ -412,14 +412,14 @@ export class PointsService {
   }
 
   async getMyPointHistory(id: string, page: number) {
-    const take = 10;
-    const result = await this.historyRepository
-      .createQueryBuilder('history')
-      .where('history.user_id = :userId', { userId: id })
-      .orderBy('created_at', 'DESC')
-      .take(take)
-      .skip((page - 1) * take)
-      .getMany();
+    const take = 13;
+    const result = await this.historyRepository.find({
+      where: { user: { id } },
+      order: { createdAt: 'DESC', remainedPoint: 'ASC' },
+      take,
+      skip: (page - 1) * take,
+    });
+
     return result.map((history) => {
       return {
         id: history.id,
