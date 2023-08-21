@@ -69,7 +69,7 @@ export class UsersService {
     await this.pointRepository.save(pointEntity);
 
     const historyEntity = await this.historyRepository.create({
-      detail: '가입 완료 시 지급',
+      detail: '가입 완료로 환영 포인트 지급',
       usedPoint: 100,
       remainedPoint: 100,
       user: user,
