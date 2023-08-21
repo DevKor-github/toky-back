@@ -65,47 +65,6 @@ export class AuthController {
 
     res.redirect(process.env.DOMAIN + '/bets');
   }
-
-  @Get('/naver')
-  @UseGuards(AuthGuard('naver'))
-  async naverLogin() {
-    // redirect to naver login page
-  }
-
-  @Get('/naver/redirect')
-  @UseGuards(AuthGuard('naver'))
-  async naverLoginRedirect(@Req() req, @Res() res) {
-    const userInfoDto = await this.usersService.findOrCreateById(req.user.id);
-
-    const token = await this.authService.getToken(userInfoDto.payload);
-    res.cookie('access-token', token.accessToken, {
-      expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
-      sameSite: 'none',
-      secure: true,
-      httpOnly: false,
-      domain: 'toky.devkor.club',
-    });
-    res.cookie('refresh-token', token.refreshToken, {
-      expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
-      sameSite: 'none',
-      secure: true,
-      httpOnly: false,
-      domain: 'toky.devkor.club',
-    });
-
-    await this.authService.saveRefreshToken(
-      token.refreshToken,
-      userInfoDto.payload.id,
-    );
-
-    if (!userInfoDto.hasPhone) {
-      res.redirect(process.env.DOMAIN + '/signup');
-      return;
-    }
-
-    res.redirect(process.env.DOMAIN + '/bets');
-  }
-
   @Post('/refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
   async refresh(@Req() req, @Res() res) {
