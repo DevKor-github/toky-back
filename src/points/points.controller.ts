@@ -88,4 +88,24 @@ export class PointsController {
   ) {
     return this.pointsService.getMyPointHistory(req.user.id, page || 1);
   }
+
+  @Get('/share/rank')
+  @UseGuards(AuthGuard('jwt'))
+  async getShareRanking(@Req() req) {
+    try {
+      return await this.pointsService.getRankSharePoint(req.user.id);
+    } catch (e) {
+      return e.message;
+    }
+  }
+
+  @Get('/share/prediction')
+  @UseGuards(AuthGuard('jwt'))
+  async getSharePrediction(@Req() req) {
+    try {
+      return await this.pointsService.getPredictionSharePoint(req.user.id);
+    } catch (e) {
+      return e.message;
+    }
+  }
 }

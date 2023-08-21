@@ -30,6 +30,20 @@ export class UserEntity {
   })
   university?: University;
 
+  @Column({
+    type: Date,
+    nullable: true,
+    default: null,
+  })
+  lastShareRank?: Date;
+
+  @Column({
+    type: Date,
+    nullable: true,
+    default: null,
+  })
+  lastSharePrediction?: Date;
+
   @OneToMany((type) => BetAnswerEntity, (bet) => bet.user) // one to many BetDetail
   bets: BetAnswerEntity[];
 
