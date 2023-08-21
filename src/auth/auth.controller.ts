@@ -159,7 +159,7 @@ export class AuthController {
     };
   }
 
-  @Patch('/update/name')
+  @Post('/update/name')
   @UseGuards(AuthGuard('jwt'))
   async updateName(@Req() req, @Body() updateNameDto: UpdateNameDto) {
     const { id } = req.user;
