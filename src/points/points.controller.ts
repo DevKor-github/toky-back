@@ -62,6 +62,9 @@ export class PointsController {
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ description: '경품 응모' })
   async drawForGift(@Body() drawGiftListDto: DrawGiftListDto, @Req() req) {
+    if (new Date('2023-09-15T15:00:00Z').getTime() < Date.now()) {
+      return { message: '응모 기간이 아닙니다.' };
+    }
     return this.pointsService.drawForGift(drawGiftListDto.draws, req.user.id);
   }
 

@@ -37,6 +37,23 @@ export class BetsController {
     @Res() res,
   ) {
     try {
+      const limitMap = {
+        1: '2023-09-08T02:30:00Z',
+        2: '2023-09-08T06:30:00Z',
+        3: '2023-09-08T08:30:00Z',
+        4: '2023-09-09T00:30:00Z',
+        5: '2023-09-09T03:30:00Z',
+      };
+
+      if (
+        Date.now() >
+        new Date(
+          limitMap[Math.ceil(createBetAnswerDto.questionId / 5)],
+        ).getTime()
+      ) {
+        throw new Error('베팅 기간이 아닙니다.');
+      }
+
       const result = await this.betsService.createOrUpdateAnswer(
         req.user.id,
         createBetAnswerDto,
@@ -44,6 +61,7 @@ export class BetsController {
       res.status(result.status).json({ percentage: result.percentage });
     } catch (err) {
       console.log(err);
+      res.status(400).json({ message: err.message });
     }
   }
 
