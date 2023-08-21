@@ -40,6 +40,7 @@ export class PointsService {
         point: {
           totalPoint: 'DESC',
         },
+        name: 'DESC',
       },
       where: {
         point: Not(IsNull()),
@@ -80,7 +81,7 @@ export class PointsService {
 
   async getRankingListByRankAndId(rank: number, id: string) {
     const TAKE = 10;
-    let page = Math.floor(rank / TAKE);
+    let page = Math.floor((rank - 1) / TAKE);
     let [users, total] = await this.userRepository.findAndCount({
       select: ['id', 'name', 'university', 'point'],
       relations: {
@@ -151,7 +152,7 @@ export class PointsService {
 
   async getRankingListByRankAndName(rank: number, name: string) {
     const TAKE = 10;
-    let page = Math.floor(rank / TAKE);
+    let page = Math.floor((rank - 1) / TAKE);
     let [users, total] = await this.userRepository.findAndCount({
       select: ['id', 'name', 'university', 'point'],
       relations: {
@@ -170,7 +171,10 @@ export class PointsService {
       skip: page * TAKE,
     });
 
-    while (users.findIndex((user) => user.name === name) === -1) {
+    while (
+      users.length > 0 &&
+      users.findIndex((user) => user.name === name) === -1
+    ) {
       page++;
       [users, total] = await this.userRepository.findAndCount({
         select: ['id', 'name', 'university', 'point'],
@@ -287,6 +291,7 @@ export class PointsService {
         point: {
           totalPoint: 'DESC',
         },
+        name: 'DESC',
       },
       where: {
         point: Not(IsNull()),
