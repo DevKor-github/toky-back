@@ -5,7 +5,6 @@ import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { KakaoStrategy } from './strategy/kakao.strategy';
-import { NaverStrategy } from './strategy/naver.strategy';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { JwtStrategy as RefreshStrategy } from './strategy/refreshToken.strategy';
 import { UsersService } from 'src/users/users.service';
@@ -29,7 +28,6 @@ import { HistoryEntity } from 'src/points/entities/history.entity';
     AuthService,
     UsersService,
     KakaoStrategy,
-    NaverStrategy,
     JwtStrategy,
     RefreshStrategy,
   ],
