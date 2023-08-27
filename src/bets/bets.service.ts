@@ -93,7 +93,7 @@ export class BetsService {
           case 2:
             existingAnswer.question.choice3Percentage = (n3 - 1) / count;
             break;
-        }
+        } 
 
         switch (answer) {
           case 0:
