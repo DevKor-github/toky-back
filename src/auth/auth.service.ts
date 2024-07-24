@@ -79,17 +79,16 @@ export class AuthService {
       throw new Error('잠시 후에 다시 인증번호를 요청해주세요.');
     }
 
-    const API_URL = `https://sens.apigw.ntruss.com/sms/v2/services/${process.env.SENS_SERVICE_ID}/messages`;
+    const API_URL = `https://api.coolsms.co.kr/messages/v4/send-many/detail`;
     const rand = Math.floor(Math.random() * 1000000).toString();
     const number = rand.padStart(6, '0');
     const body = {
-      type: 'SMS',
-      from: process.env.SENS_PHONE_NUMBER,
-      content: `[TOKY] 휴대폰 인증번호는 [${number}]입니다.`,
       messages: [
         {
+          from: process.env.COOLSMS_PHONE_NUMBER,
           to: phoneNumber,
-          content: `[TOKY] 휴대폰 인증번호는 [${number}]입니다.`,
+          text: `[TOKY] 휴대폰 인증번호는 [${number}]입니다.`,
+          type: 'SMS',
         },
       ],
     };
@@ -101,29 +100,25 @@ export class AuthService {
     });
     await this.phoneRepository.save(phoneEntity);
 
-    const accessKey = process.env.NAVER_API_KEY;
-    const secretKey = process.env.NAVER_API_SECRET;
-    const timestamp = Date.now().toString();
+    const accessKey = process.env.COOLSMS_API_KEY;
+    const secretKey = process.env.COOLSMS_API_SECRET;
+    const timestamp = new Date().toISOString();
+    const salt = crypto.randomBytes(32).toString('hex');
 
     const hmac = crypto.createHmac('sha256', secretKey);
-    hmac.update('POST');
-    hmac.update(' ');
-    hmac.update(`/sms/v2/services/${process.env.SENS_SERVICE_ID}/messages`);
-    hmac.update('\n');
-    hmac.update(`${timestamp}`);
-    hmac.update('\n');
-    hmac.update(`${accessKey}`);
-    const hash = hmac.digest('base64');
+    hmac.update(`${timestamp}${salt}`);
+    const hash = hmac.digest('hex');
+
+    const authHeader = `HMAC-SHA256 apiKey=${accessKey}, date=${timestamp}, salt=${salt}, signature=${hash}`;
 
     const response = await axios.post(API_URL, body, {
       headers: {
         'Content-Type': 'application/json',
-        'x-ncp-apigw-timestamp': timestamp,
-        'x-ncp-iam-access-key': accessKey,
-        'x-ncp-apigw-signature-v2': hash,
+        Authorization: authHeader,
       },
     });
-    if (Number(response.data.statusCode) !== 202)
+
+    if (response.data.failedMessageList.length !== 0)
       throw new Error('올바르지 않은 전화번호입니다. 다시 시도해주세요.');
   }
 
