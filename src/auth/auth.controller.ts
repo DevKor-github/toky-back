@@ -89,7 +89,7 @@ export class AuthController {
     }
   }
 
-  @Get('/logout')
+  @Post('/logout')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '로그아웃' })
   async logout(@Req() req) {
@@ -170,7 +170,7 @@ export class AuthController {
     };
   }
 
-  @Post('/update/name')
+  @Patch('/update/name')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '유저 name 변경' })
   async updateName(@Req() req, @Body() updateNameDto: UpdateNameDto) {
