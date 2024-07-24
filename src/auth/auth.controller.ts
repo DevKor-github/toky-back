@@ -17,8 +17,10 @@ import { PhoneDto } from './dto/phone.dto';
 import { JwtPayload } from 'src/common/interfaces/JwtPayload';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { Response } from 'express';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller('auth')
+@ApiTags('auth')
 export class AuthController {
   constructor(
     private readonly usersService: UsersService,
@@ -30,12 +32,14 @@ export class AuthController {
 
   @Get('/kakao')
   @UseGuards(AuthGuard('kakao'))
+  @ApiOperation({ summary: '카카오 로그인' })
   async kakaoLogin() {
     // redirect to kakao login page
   }
 
   @Get('/kakao/redirect')
   @UseGuards(AuthGuard('kakao'))
+  @ApiOperation({ summary: '카카오 로그인 후 redirect 되는 url' })
   async kakaoLoginRedirect(@Req() req, @Res() res: Response) {
     const userInfoDto = await this.usersService.findOrCreateById(req.user.id);
 
@@ -67,6 +71,7 @@ export class AuthController {
   }
   @Post('/refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
+  @ApiOperation({ summary: 'Token 재발급' })
   async refresh(@Req() req, @Res() res) {
     try {
       const { refreshToken, id } = req.user;
@@ -86,6 +91,7 @@ export class AuthController {
 
   @Get('/logout')
   @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: '로그아웃' })
   async logout(@Req() req) {
     const { id } = req.user;
     await this.authService.removeRefreshToken(id);
@@ -93,6 +99,7 @@ export class AuthController {
 
   @Post('/signup')
   @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: '인증번호 확인 및 회원가입' })
   async signup(@Req() req, @Res() res, @Body() signupDto: SignupDto) {
     try {
       console.log(signupDto);
@@ -112,6 +119,7 @@ export class AuthController {
 
   @Post('/phone')
   @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: '휴대폰 인증번호 발송' })
   async phone(@Req() req, @Res() res, @Body() phoneDto: PhoneDto) {
     try {
       const { id } = req.user;
@@ -133,12 +141,14 @@ export class AuthController {
 
   @Get('/checkname')
   @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: 'name 중복확인' })
   async checkname(@Query('name') name: string) {
     return await this.usersService.isValidName(name);
   }
 
   @Get('/needsignup')
   @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: '회원가입이 필요한 유저인지 확인' })
   async checkSignupNeeded(@Req() req) {
     const { id } = req.user;
     return await this.usersService.validateUser(id);
@@ -146,6 +156,7 @@ export class AuthController {
 
   @Get('/profile')
   @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: '유저 프로필 및 포인트 조회' })
   async getUserProfile(@Req() req) {
     const { id } = req.user;
     const user = await this.usersService.findUserById(id);
@@ -161,6 +172,7 @@ export class AuthController {
 
   @Post('/update/name')
   @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: '유저 name 변경' })
   async updateName(@Req() req, @Body() updateNameDto: UpdateNameDto) {
     const { id } = req.user;
 
