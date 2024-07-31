@@ -37,22 +37,22 @@ export class BetsController {
     @Res() res,
   ) {
     try {
-      const limitMap = {
-        1: '2023-09-08T02:00:00Z',
-        2: '2023-09-08T05:00:00Z',
-        3: '2023-09-08T08:00:00Z',
-        4: '2023-09-09T02:00:00Z',
-        5: '2023-09-09T05:00:00Z',
-      };
+      // const limitMap = {
+      //   1: '2023-09-08T02:00:00Z',
+      //   2: '2023-09-08T05:00:00Z',
+      //   3: '2023-09-08T08:00:00Z',
+      //   4: '2023-09-09T02:00:00Z',
+      //   5: '2023-09-09T05:00:00Z',
+      // };
 
-      if (
-        Date.now() >
-        new Date(
-          limitMap[Math.ceil(createBetAnswerDto.questionId / 5)],
-        ).getTime()
-      ) {
-        throw new Error('베팅 기간이 아닙니다.');
-      }
+      // if (
+      //   Date.now() >
+      //   new Date(
+      //     limitMap[Math.ceil(createBetAnswerDto.questionId / 5)],
+      //   ).getTime()
+      // ) {
+      //   throw new Error('베팅 기간이 아닙니다.');
+      // }
 
       const result = await this.betsService.createOrUpdateAnswer(
         req.user.id,
