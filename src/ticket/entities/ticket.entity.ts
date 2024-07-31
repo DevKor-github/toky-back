@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { UserEntity } from 'src/users/entities/user.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('ticket')
 export class TicketEntity {
@@ -7,4 +14,8 @@ export class TicketEntity {
 
   @Column({ name: 'count' })
   count: number;
+
+  @OneToOne(() => UserEntity, { onUpdate: 'CASCADE' }) // one to many point
+  @JoinColumn({ name: 'user_id' })
+  user: UserEntity;
 }

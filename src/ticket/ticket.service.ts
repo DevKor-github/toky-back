@@ -18,4 +18,16 @@ export class TicketService {
     @InjectRepository(TicketEntity)
     private readonly ticketRepository: Repository<TicketEntity>,
   ) {}
+
+  async getTicketCount(userId: string): Promise<number> {
+    const ticket = await this.ticketRepository.findOne({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
+    });
+
+    return ticket.count;
+  }
 }
