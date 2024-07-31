@@ -14,6 +14,7 @@ export class HistoryService {
     userId: string,
     usedTicket: number,
     remainingTicket: number,
+    detail: string,
   ): Promise<HistoryEntity> {
     const history = this.historyRepository.create({
       user: {
@@ -21,6 +22,7 @@ export class HistoryService {
       },
       usedTicket,
       remainingTicket,
+      detail,
     });
 
     return await this.historyRepository.save(history);
