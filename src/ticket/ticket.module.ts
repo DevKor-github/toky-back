@@ -7,6 +7,7 @@ import { GiftEntity } from './entities/gift.entity';
 import { HistoryEntity } from './entities/history.entity';
 import { TicketEntity } from './entities/ticket.entity';
 import { HistoryService } from './history.service';
+import { GiftService } from './gift.service';
 
 @Module({
   imports: [
@@ -18,6 +19,6 @@ import { HistoryService } from './history.service';
     ]),
   ],
   controllers: [TicketController],
-  providers: [TicketService, HistoryService],
+  providers: [TicketService, HistoryService, GiftService],
 })
 export class TicketModule {}
