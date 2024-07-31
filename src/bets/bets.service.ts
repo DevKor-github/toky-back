@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { In, IsNull, Not, Repository } from 'typeorm';
 import { BetAnswerEntity } from './entities/betAnswer.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
@@ -73,6 +77,8 @@ export class BetsService {
     if (existingAnswer) {
       if (answer >= existingAnswer.question.choice.length || answer < 0)
         throw new NotFoundException('Answer is not valid');
+      if (answer === existingAnswer.answer)
+        throw new BadRequestException('Same Answer!');
       const prevAnswer = existingAnswer.answer;
       existingAnswer.answer = answer;
       await this.betAnswerRepository.save(existingAnswer);
@@ -93,7 +99,7 @@ export class BetsService {
           case 2:
             existingAnswer.question.choice3Percentage = (n3 - 1) / count;
             break;
-        } 
+        }
 
         switch (answer) {
           case 0:
