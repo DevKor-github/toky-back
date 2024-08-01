@@ -9,7 +9,7 @@ export class GiftEntity {
   @Column()
   name: string;
 
-  @Column({ name: 'required_ticket' })
+  @Column({ name: 'required_ticket', default: 1 })
   requiredTicket: number;
 
   @Column({ name: 'photo_url' })
