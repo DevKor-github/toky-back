@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { CheerEntity } from './entities/cheer.entity';
 import { CheerDto } from './dto/cheer.dto';
 import { University } from 'src/common/enums/university.enum';
-import { UserEntity } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class CheersService {
