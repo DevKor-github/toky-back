@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { Repository } from 'typeorm';
@@ -7,6 +7,7 @@ import { SignupDto } from 'src/auth/dto/signup.dto';
 import { PhoneEntity } from 'src/auth/entities/phone.entity';
 import { PointEntity } from 'src/points/entities/point.entity';
 import { HistoryEntity } from 'src/points/entities/history.entity';
+import { ProfileDto } from './dto/profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -36,6 +37,14 @@ export class UsersService {
       where: { id },
       relations: ['point'],
     });
+  }
+
+  async getUserProfile(id: string): Promise<ProfileDto> {
+    const user = await this.findUserById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return new ProfileDto(user);
   }
 
   async isValidName(name: string) {

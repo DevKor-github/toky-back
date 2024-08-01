@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Patch,
   Post,
   Query,
   Req,
@@ -14,10 +13,14 @@ import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { PhoneDto } from './dto/phone.dto';
-import { JwtPayload } from 'src/common/interfaces/auth.interface';
-import { UpdateNameDto } from './dto/update-name.dto';
+import {
+  JwtPayload,
+  RefreshTokenPayload,
+} from 'src/common/interfaces/auth.interface';
 import { Response } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RefreshUser } from 'src/common/decorators/refreshUser.decorator';
+import { AccessUser } from 'src/common/decorators/accessUser.decorator';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -25,10 +28,7 @@ export class AuthController {
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
-  ) {
-    this.usersService = usersService;
-    this.authService = authService;
-  }
+  ) {}
 
   @Get('/kakao')
   @UseGuards(AuthGuard('kakao'))
@@ -72,9 +72,12 @@ export class AuthController {
   @Post('/refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
   @ApiOperation({ summary: 'Token 재발급' })
-  async refresh(@Req() req, @Res() res) {
+  async refresh(
+    @RefreshUser() user: RefreshTokenPayload,
+    @Res() res: Response,
+  ) {
     try {
-      const { refreshToken, id } = req.user;
+      const { refreshToken, id } = user;
       await this.authService.checkRefreshToken(refreshToken, id);
       const payload: JwtPayload = { id, signedAt: new Date().toISOString() };
       const token = await this.authService.getToken(payload);
@@ -92,23 +95,27 @@ export class AuthController {
   @Post('/logout')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '로그아웃' })
-  async logout(@Req() req) {
-    const { id } = req.user;
-    await this.authService.removeRefreshToken(id);
+  async logout(@AccessUser() user: JwtPayload) {
+    await this.authService.removeRefreshToken(user.id);
   }
 
   @Post('/signup')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '인증번호 확인 및 회원가입' })
-  async signup(@Req() req, @Res() res, @Body() signupDto: SignupDto) {
+  async signup(
+    @AccessUser() user: JwtPayload,
+    @Res() res: Response,
+    @Body() signupDto: SignupDto,
+  ) {
     try {
       console.log(signupDto);
-      const { id } = req.user;
-
-      const isValidCode = await this.authService.checkCode(id, signupDto.code);
+      const isValidCode = await this.authService.checkCode(
+        user.id,
+        signupDto.code,
+      );
       if (!isValidCode) throw Error('인증번호가 일치하지 않습니다.');
 
-      await this.usersService.signup(signupDto, id);
+      await this.usersService.signup(signupDto, user.id);
 
       res.sendStatus(201);
     } catch (err) {
@@ -120,9 +127,12 @@ export class AuthController {
   @Post('/phone')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '휴대폰 인증번호 발송' })
-  async phone(@Req() req, @Res() res, @Body() phoneDto: PhoneDto) {
+  async phone(
+    @AccessUser() user: JwtPayload,
+    @Res() res: Response,
+    @Body() phoneDto: PhoneDto,
+  ) {
     try {
-      const { id } = req.user;
       const { phoneNumber } = phoneDto;
       const dashRemovedPhoneNumber = phoneNumber.replace(/-/g, '');
       const isPhoneValid = await this.usersService.isValidPhoneNumber(
@@ -132,7 +142,10 @@ export class AuthController {
         throw Error('이미 사용중인 휴대폰 번호입니다.');
       }
 
-      await this.authService.validatePhoneNumber(dashRemovedPhoneNumber, id);
+      await this.authService.validatePhoneNumber(
+        dashRemovedPhoneNumber,
+        user.id,
+      );
       res.sendStatus(200);
     } catch (err) {
       return res.status(400).json({ message: err.message });
@@ -149,33 +162,7 @@ export class AuthController {
   @Get('/needsignup')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '회원가입이 필요한 유저인지 확인' })
-  async checkSignupNeeded(@Req() req) {
-    const { id } = req.user;
-    return await this.usersService.validateUser(id);
-  }
-
-  @Get('/profile')
-  @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ summary: '유저 프로필 및 포인트 조회' })
-  async getUserProfile(@Req() req) {
-    const { id } = req.user;
-    const user = await this.usersService.findUserById(id);
-
-    return {
-      name: user.name,
-      university: user.university,
-      score: user.point.totalPoint,
-      remain: user.point.remainingPoint,
-      phoneNumber: user.phoneNumber,
-    };
-  }
-
-  @Patch('/update/name')
-  @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ summary: '유저 name 변경' })
-  async updateName(@Req() req, @Body() updateNameDto: UpdateNameDto) {
-    const { id } = req.user;
-
-    return this.usersService.updateName(id, updateNameDto.name);
+  async checkSignupNeeded(@AccessUser() user: JwtPayload) {
+    return await this.usersService.validateUser(user.id);
   }
 }
