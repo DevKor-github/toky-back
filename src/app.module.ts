@@ -3,12 +3,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { BetsModule } from './bets/bets.module';
-import { PointsModule } from './points/points.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { CheersModule } from './cheers/cheers.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
+import { TicketModule } from './ticket/ticket.module';
 
 @Module({
   imports: [
@@ -26,9 +26,9 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
     }),
     UsersModule,
     BetsModule,
-    PointsModule,
     AuthModule,
     CheersModule,
+    TicketModule,
   ],
 
   controllers: [AppController],
