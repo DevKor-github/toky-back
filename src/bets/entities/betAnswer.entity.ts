@@ -16,11 +16,11 @@ export class BetAnswerEntity {
   @Column()
   answer: number; //enum choice가 매 question마다 개수가 다를 수 있음
 
-  @ManyToOne((type) => UserEntity, (user) => user.bets) //fk  many to one user
+  @ManyToOne(() => UserEntity, (user) => user.bets) //fk  many to one user
   @JoinColumn({ name: 'user_id' }) //
   user: UserEntity;
 
-  @ManyToOne((type) => BetQuestionEntity, (question) => question.betAnswers) //many to one bet item
+  @ManyToOne(() => BetQuestionEntity, (question) => question.betAnswers) //many to one bet item
   @JoinColumn({ name: 'question_id' })
   question: BetQuestionEntity;
 }

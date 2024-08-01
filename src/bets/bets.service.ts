@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { In, IsNull, Not, Repository } from 'typeorm';
+import { DataSource, In, IsNull, Not, Repository } from 'typeorm';
 import { BetAnswerEntity } from './entities/betAnswer.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { CreateBetAnswerDto } from './dto/create-bet-answer.dto';
@@ -24,6 +24,7 @@ export class BetsService {
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     private readonly ticketService: TicketService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async getBetInfo(id: string): Promise<betQuestionResponseDto[]> {
@@ -40,6 +41,17 @@ export class BetsService {
     });
 
     const result: betQuestionResponseDto[] = betQuestions.map((betQuestion) => {
+      const totalAnswerCount =
+        betQuestion.choice1Count +
+        betQuestion.choice2Count +
+        betQuestion.choice3Count;
+      const percentage = [
+        betQuestion.choice1Count / totalAnswerCount,
+        betQuestion.choice2Count / totalAnswerCount,
+      ];
+      if (betQuestion.choice.length === 3) {
+        percentage.push(betQuestion.choice3Count / totalAnswerCount);
+      }
       return {
         questionId: betQuestion.id,
         description: betQuestion.description,
@@ -47,11 +59,7 @@ export class BetsService {
         answer: betAnswers.find(
           (answer) => answer.question.id === betQuestion.id,
         )?.answer,
-        percentage: [
-          betQuestion.choice1Percentage,
-          betQuestion.choice2Percentage,
-          betQuestion.choice3Percentage,
-        ].filter((percentage) => percentage !== null),
+        percentage,
       };
     });
 
@@ -61,144 +69,103 @@ export class BetsService {
   async createOrUpdateAnswer(userid: string, createDto: CreateBetAnswerDto) {
     const { questionId, answer } = createDto;
 
-    if (questionId < 1 || questionId > 25) {
+    const question = await this.betQuestionRepository.findOne({
+      where: {
+        id: questionId,
+      },
+    });
+
+    if (!question)
       throw new NotFoundException(
         'An betting question with requested questionId does not exist',
       );
-    }
 
-    const existingAnswer = await this.betAnswerRepository.findOne({
-      where: {
-        user: { id: userid },
-        question: { id: questionId },
-      },
-      relations: ['question'],
-    });
-    if (existingAnswer) {
-      if (answer >= existingAnswer.question.choice.length || answer < 0)
-        throw new NotFoundException('Answer is not valid');
-      if (answer === existingAnswer.answer)
-        throw new BadRequestException('Same Answer!');
-      const prevAnswer = existingAnswer.answer;
-      existingAnswer.answer = answer;
-      await this.betAnswerRepository.save(existingAnswer);
+    if (answer >= question.choice.length || answer < 0)
+      throw new BadRequestException('Answer is not valid');
 
-      const count = existingAnswer.question.answerCount;
-      const n1 = existingAnswer.question.choice1Percentage * count;
-      const n2 = existingAnswer.question.choice2Percentage * count;
-      if (existingAnswer.question.choice.length == 3) {
-        const n3 = existingAnswer.question.choice3Percentage * count;
+    const choiceColumn = ['choice1Count', 'choice2Count', 'choice3Count'];
 
-        switch (prevAnswer) {
-          case 0:
-            existingAnswer.question.choice1Percentage = (n1 - 1) / count;
-            break;
-          case 1:
-            existingAnswer.question.choice2Percentage = (n2 - 1) / count;
-            break;
-          case 2:
-            existingAnswer.question.choice3Percentage = (n3 - 1) / count;
-            break;
-        }
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-        switch (answer) {
-          case 0:
-            existingAnswer.question.choice1Percentage = (n1 + 1) / count;
-            break;
-          case 1:
-            existingAnswer.question.choice2Percentage = (n2 + 1) / count;
-            break;
-          case 2:
-            existingAnswer.question.choice3Percentage = (n3 + 1) / count;
-        }
-      } else {
-        switch (prevAnswer) {
-          case 0:
-            existingAnswer.question.choice1Percentage = (n1 - 1) / count;
-            break;
-          case 1:
-            existingAnswer.question.choice2Percentage = (n2 - 1) / count;
-            break;
-        }
-
-        switch (answer) {
-          case 0:
-            existingAnswer.question.choice1Percentage = (n1 + 1) / count;
-            break;
-          case 1:
-            existingAnswer.question.choice2Percentage = (n2 + 1) / count;
-            break;
-        }
-      }
-      await this.betQuestionRepository.save(existingAnswer.question);
-      return {
-        status: 200,
-        percentage: [
-          existingAnswer.question.choice1Percentage,
-          existingAnswer.question.choice2Percentage,
-          existingAnswer.question.choice3Percentage,
-        ],
-      };
-    } else {
-      const question = await this.betQuestionRepository.findOne({
-        where: {
-          id: questionId,
+    try {
+      const existingAnswer = await queryRunner.manager.findOne(
+        BetAnswerEntity,
+        {
+          where: {
+            user: { id: userid },
+            question: { id: questionId },
+          },
         },
-      });
-      if (answer >= question.choice.length || answer < 0)
-        throw new NotFoundException('Answer is not valid');
-      const newAnswer = this.betAnswerRepository.create({
-        user: { id: userid },
-        question: { id: questionId },
-        answer,
-      });
-      await this.betAnswerRepository.save(newAnswer);
-      const count = question.answerCount;
-      const n1 = question.choice1Percentage * count;
-      const n2 = question.choice2Percentage * count;
-      if (question.choice.length == 3) {
-        const n3 = question.choice3Percentage * count;
-        if (answer == 0) {
-          question.choice1Percentage = (n1 + 1) / (count + 1);
-          question.choice2Percentage = n2 / (count + 1);
-          question.choice3Percentage = n3 / (count + 1);
-        } else if (answer == 1) {
-          question.choice1Percentage = n1 / (count + 1);
-          question.choice2Percentage = (n2 + 1) / (count + 1);
-          question.choice3Percentage = n3 / (count + 1);
-        } else {
-          question.choice1Percentage = n1 / (count + 1);
-          question.choice2Percentage = n2 / (count + 1);
-          question.choice3Percentage = (n3 + 1) / (count + 1);
-        }
-      } else {
-        if (answer == 0) {
-          question.choice1Percentage = (n1 + 1) / (count + 1);
-          question.choice2Percentage = n2 / (count + 1);
-        } else {
-          question.choice1Percentage = n1 / (count + 1);
-          question.choice2Percentage = (n2 + 1) / (count + 1);
-        }
-      }
-      question.answerCount = count + 1;
-      await this.betQuestionRepository.save(question);
-
-      await this.ticketService.changeTicketCount(
-        userid,
-        1,
-        `${MatchMap[`${parseInt(((questionId - 1) / 5).toString())}`]} 종목 ${
-          questionId % 5 === 0 ? 5 : questionId % 5
-        }번 예측 참여로 응모권 1개 획득`,
       );
 
+      if (existingAnswer) {
+        if (existingAnswer.answer === answer)
+          throw new BadRequestException('Same Answer!');
+
+        await queryRunner.manager.decrement(
+          BetQuestionEntity,
+          { id: question.id },
+          choiceColumn[existingAnswer.answer],
+          1,
+        );
+        question[choiceColumn[existingAnswer.answer]] -= 1;
+
+        await queryRunner.manager.update(
+          BetAnswerEntity,
+          {
+            id: existingAnswer.id,
+          },
+          {
+            answer,
+          },
+        );
+      } else {
+        await queryRunner.manager.insert(BetAnswerEntity, {
+          user: { id: userid },
+          question: { id: questionId },
+          answer,
+        });
+
+        await this.ticketService.changeTicketCount(
+          userid,
+          1,
+          `${MatchMap[`${parseInt(((questionId - 1) / 5).toString())}`]} 종목 ${
+            questionId % 5 === 0 ? 5 : questionId % 5
+          }번 예측 참여로 응모권 1개 획득`,
+          queryRunner.manager,
+        );
+      }
+
+      await queryRunner.manager.increment(
+        BetQuestionEntity,
+        { id: question.id },
+        choiceColumn[answer],
+        1,
+      );
+      question[choiceColumn[answer]] += 1;
+
+      await queryRunner.commitTransaction();
+      const status = existingAnswer ? 200 : 201;
+      const totalAnswerCount =
+        question.choice1Count + question.choice2Count + question.choice3Count;
+      const percentage = [
+        question.choice1Count / totalAnswerCount,
+        question.choice2Count / totalAnswerCount,
+      ];
+      if (question.choice.length === 3) {
+        percentage.push(question.choice3Count / totalAnswerCount);
+      }
       return {
-        status: 201,
-        percentage: [
-          question.choice1Percentage,
-          question.choice2Percentage,
-          question.choice3Percentage,
-        ],
+        status,
+        percentage,
       };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
   }
 
