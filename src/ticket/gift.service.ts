@@ -55,4 +55,22 @@ export class GiftService {
       await queryRunner.release();
     }
   }
+
+  async getDrawCount(userId: string) {
+    const allResult = await this.drawRepository
+      .createQueryBuilder('draw')
+      .select('draw.gift_id AS giftId')
+      .addSelect('COUNT(*) AS drawCount')
+      .groupBy('draw.gift_id')
+      .getRawMany();
+    const myResult = await this.drawRepository
+      .createQueryBuilder('draw')
+      .select('draw.gift_id AS giftId')
+      .addSelect('COUNT(*) AS drawCount')
+      .where('draw.user_id = :userId', { userId })
+      .groupBy('draw.gift_id')
+      .getRawMany();
+
+    return [allResult, myResult];
+  }
 }

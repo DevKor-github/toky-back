@@ -49,4 +49,11 @@ export class TicketController {
   async drawGift(@Req() req, @Body() draws: DrawGiftListDto) {
     return this.giftService.drawGift(req.user.id, draws.draws);
   }
+
+  @Get('/draw')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ description: '경품 응모 참여인원 조회' })
+  async getDrawCount(@Req() req) {
+    return this.giftService.getDrawCount(req.user.id);
+  }
 }
