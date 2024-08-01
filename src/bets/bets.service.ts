@@ -12,9 +12,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ParticipantsResponseDto } from './dto/participantsResponse.dto';
 import { University } from 'src/common/enums/university.enum';
 import { betQuestionResponseDto } from './dto/betQuestionResponse.dto';
-import { PointEntity } from 'src/points/entities/point.entity';
-import { HistoryEntity } from 'src/points/entities/history.entity';
 import { MatchMap } from 'src/common/enums/event.enum';
+import { TicketService } from 'src/ticket/ticket.service';
 @Injectable()
 export class BetsService {
   constructor(
@@ -24,10 +23,7 @@ export class BetsService {
     private readonly betQuestionRepository: Repository<BetQuestionEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(PointEntity)
-    private readonly pointRepository: Repository<PointEntity>,
-    @InjectRepository(HistoryEntity)
-    private readonly historyRepository: Repository<HistoryEntity>,
+    private readonly ticketService: TicketService,
   ) {}
 
   async getBetInfo(id: string): Promise<betQuestionResponseDto[]> {
@@ -144,17 +140,19 @@ export class BetsService {
         ],
       };
     } else {
+      const question = await this.betQuestionRepository.findOne({
+        where: {
+          id: questionId,
+        },
+      });
+      if (answer >= question.choice.length || answer < 0)
+        throw new NotFoundException('Answer is not valid');
       const newAnswer = this.betAnswerRepository.create({
         user: { id: userid },
         question: { id: questionId },
         answer,
       });
       await this.betAnswerRepository.save(newAnswer);
-      const question = await this.betQuestionRepository.findOne({
-        where: {
-          id: questionId,
-        },
-      });
       const count = question.answerCount;
       const n1 = question.choice1Percentage * count;
       const n2 = question.choice2Percentage * count;
@@ -185,25 +183,13 @@ export class BetsService {
       question.answerCount = count + 1;
       await this.betQuestionRepository.save(question);
 
-      const user = await this.userRepository.findOne({
-        where: { id: userid },
-        relations: ['point'],
-      });
-      user.point.totalPoint += 50;
-      user.point.remainingPoint += 50;
-      await this.pointRepository.save(user.point);
-
-      const history = this.historyRepository.create({
-        user: { id: userid },
-        remainedPoint: user.point.remainingPoint,
-        detail: `${
-          MatchMap[`${parseInt(((questionId - 1) / 5).toString())}`]
-        } 종목 ${
+      await this.ticketService.changeTicketCount(
+        userid,
+        1,
+        `${MatchMap[`${parseInt(((questionId - 1) / 5).toString())}`]} 종목 ${
           questionId % 5 === 0 ? 5 : questionId % 5
-        }번 예측 참여로 50포인트 획득`,
-        usedPoint: 50,
-      });
-      await this.historyRepository.save(history);
+        }번 예측 참여로 응모권 1개 획득`,
+      );
 
       return {
         status: 201,

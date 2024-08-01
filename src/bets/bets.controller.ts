@@ -8,10 +8,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { BetsService } from './bets.service';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateBetAnswerDto } from './dto/create-bet-answer.dto';
 import { AuthGuard } from '@nestjs/passport';
 
+@ApiTags('bets')
 @Controller('bets')
 export class BetsController {
   constructor(private readonly betsService: BetsService) {}
