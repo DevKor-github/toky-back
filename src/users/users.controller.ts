@@ -22,13 +22,13 @@ export class UsersController {
     return await this.usersService.getUserProfile(user.id);
   }
 
-  @Patch('/update/name')
+  @Patch('/profile/name')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '유저 name 변경' })
   async updateName(
     @AccessUser() user: JwtPayload,
     @Body() updateNameDto: UpdateNameDto,
-  ) {
+  ): Promise<void> {
     return this.usersService.updateName(user.id, updateNameDto.name);
   }
 }
