@@ -1,18 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { GiftEntity } from './entities/gift.entity';
-import { DrawEntity } from './entities/draw.entity';
 import { TicketEntity } from './entities/ticket.entity';
 import { HistoryService } from './history.service';
 
 @Injectable()
 export class TicketService {
   constructor(
-    @InjectRepository(GiftEntity)
-    private readonly giftRepository: Repository<GiftEntity>,
-    @InjectRepository(DrawEntity)
-    private readonly drawRepository: Repository<DrawEntity>,
     @InjectRepository(TicketEntity)
     private readonly ticketRepository: Repository<TicketEntity>,
     private readonly historyService: HistoryService,

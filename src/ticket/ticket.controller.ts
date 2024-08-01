@@ -1,9 +1,18 @@
-import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { TicketService } from './ticket.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation } from '@nestjs/swagger';
 import { HistoryService } from './history.service';
 import { GiftService } from './gift.service';
+import { DrawGiftListDto } from './dto/draw-gift.dto';
 
 @Controller('ticket')
 export class TicketController {
@@ -32,5 +41,12 @@ export class TicketController {
   @ApiOperation({ description: '경품 목록 조회' })
   async getGiftList() {
     return this.giftService.getGiftList();
+  }
+
+  @Post('/draw')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ description: '경품 응모' })
+  async drawGift(@Req() req, @Body() draws: DrawGiftListDto) {
+    return this.giftService.drawGift(req.user.id, draws.draws);
   }
 }
