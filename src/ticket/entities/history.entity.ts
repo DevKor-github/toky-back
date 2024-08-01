@@ -25,7 +25,7 @@ export class HistoryEntity {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
-  @ManyToOne(() => UserEntity, (user) => user.pointHistories)
+  @ManyToOne(() => UserEntity, (user) => user.ticketHistories)
   @JoinColumn({ name: 'user_id' })
   user: UserEntity;
 }

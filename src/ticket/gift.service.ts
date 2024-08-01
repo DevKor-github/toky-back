@@ -38,6 +38,7 @@ export class GiftService {
             userId,
             -1 * gift.requiredTicket,
             `${gift.name} 경품 응모 참여!`,
+            queryRunner.manager,
           );
           const draw = queryRunner.manager.create(DrawEntity, {
             user: {
@@ -48,6 +49,7 @@ export class GiftService {
           await queryRunner.manager.save(draw);
         }
       }
+      await queryRunner.commitTransaction();
     } catch (err) {
       await queryRunner.rollbackTransaction();
       throw err;

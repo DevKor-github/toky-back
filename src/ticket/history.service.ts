@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HistoryEntity } from './entities/history.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 
 @Injectable()
 export class HistoryService {
@@ -15,6 +15,7 @@ export class HistoryService {
     usedTicket: number,
     remainingTicket: number,
     detail: string,
+    entityManager?: EntityManager,
   ): Promise<HistoryEntity> {
     const history = this.historyRepository.create({
       user: {
@@ -25,10 +26,15 @@ export class HistoryService {
       detail,
     });
 
-    return await this.historyRepository.save(history);
+    return entityManager
+      ? await entityManager.save(history)
+      : await this.historyRepository.save(history);
   }
 
-  async getHistory(userId: string, page = 1) {
+  async getHistory(userId: string, page?: number) {
+    if (!page) {
+      page = 1;
+    }
     const take = 13;
     const result = await this.historyRepository.find({
       where: { user: { id: userId } },

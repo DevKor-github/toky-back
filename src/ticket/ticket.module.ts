@@ -20,5 +20,6 @@ import { GiftService } from './gift.service';
   ],
   controllers: [TicketController],
   providers: [TicketService, HistoryService, GiftService],
+  exports: [TicketService],
 })
 export class TicketModule {}
