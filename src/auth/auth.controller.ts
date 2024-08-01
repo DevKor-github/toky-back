@@ -14,7 +14,7 @@ import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { PhoneDto } from './dto/phone.dto';
-import { JwtPayload } from 'src/common/interfaces/JwtPayload';
+import { JwtPayload } from 'src/common/interfaces/auth.interface';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { Response } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';

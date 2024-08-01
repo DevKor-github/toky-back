@@ -1,4 +1,4 @@
-import { JwtPayload } from 'src/common/interfaces/JwtPayload';
+import { JwtPayload } from 'src/common/interfaces/auth.interface';
 import { UserEntity } from '../entities/user.entity';
 
 export class UserInfoDto {
