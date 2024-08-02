@@ -15,19 +15,16 @@ export class BetQuestionEntity {
   @Column({ type: 'text', array: true })
   choice: string[];
 
-  @Column({ type: 'float', default: 1 })
-  choice1Percentage: number;
+  @Column({ type: 'int', default: 0 })
+  choice1Count: number;
 
-  @Column({ type: 'float', default: 0 })
-  choice2Percentage: number;
+  @Column({ type: 'int', default: 0 })
+  choice2Count: number;
 
-  @Column({ type: 'float', default: 0, nullable: true })
-  choice3Percentage: number;
+  @Column({ type: 'int', default: 0, nullable: true })
+  choice3Count: number;
 
-  @Column({ default: 0 })
-  answerCount: number;
-
-  @OneToMany((type) => BetAnswerEntity, (answer) => answer.question)
+  @OneToMany(() => BetAnswerEntity, (answer) => answer.question)
   betAnswers: BetAnswerEntity[];
   //one to many bet pick
 }

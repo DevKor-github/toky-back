@@ -16,16 +16,16 @@ export class HistoryEntity {
   @Column()
   detail: string;
 
-  @Column({ name: 'used_point' })
-  usedPoint: number;
+  @Column({ name: 'used_ticket' })
+  usedTicket: number;
   //many to one user
-  @Column({ name: 'remained_point' })
-  remainedPoint: number;
+  @Column({ name: 'remaining_ticket' })
+  remainingTicket: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
-  @ManyToOne((type) => UserEntity, (user) => user.pointHistories)
+  @ManyToOne(() => UserEntity, (user) => user.ticketHistories)
   @JoinColumn({ name: 'user_id' })
   user: UserEntity;
 }

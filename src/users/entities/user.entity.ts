@@ -1,8 +1,8 @@
 import { BetAnswerEntity } from 'src/bets/entities/betAnswer.entity';
 import { University } from 'src/common/enums/university.enum';
-import { DrawEntity } from 'src/points/entities/draw.entity';
-import { HistoryEntity } from 'src/points/entities/history.entity';
-import { PointEntity } from 'src/points/entities/point.entity';
+import { DrawEntity } from 'src/ticket/entities/draw.entity';
+import { HistoryEntity } from 'src/ticket/entities/history.entity';
+import { TicketEntity } from 'src/ticket/entities/ticket.entity';
 import {
   Column,
   Entity,
@@ -44,17 +44,17 @@ export class UserEntity {
   })
   lastSharePrediction?: Date;
 
-  @OneToMany((type) => BetAnswerEntity, (bet) => bet.user) // one to many BetDetail
+  @OneToMany(() => BetAnswerEntity, (bet) => bet.user) // one to many BetDetail
   bets: BetAnswerEntity[];
 
-  @OneToOne((type) => PointEntity, { cascade: ['update'] }) // one to many point
-  @JoinColumn({ name: 'point_id' })
-  point: PointEntity;
+  @OneToOne(() => TicketEntity, { cascade: ['update'] }) // one to many point
+  @JoinColumn({ name: 'ticket_id' })
+  ticket: TicketEntity;
 
-  @OneToMany((type) => HistoryEntity, (history) => history.user)
-  pointHistories: HistoryEntity[];
+  @OneToMany(() => HistoryEntity, (history) => history.user)
+  ticketHistories: HistoryEntity[];
 
-  @OneToMany((type) => DrawEntity, (draw) => draw.user)
+  @OneToMany(() => DrawEntity, (draw) => draw.user)
   draws: DrawEntity[];
   // one to many draw
 }

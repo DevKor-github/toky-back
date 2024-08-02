@@ -9,12 +9,12 @@ export class GiftEntity {
   @Column()
   name: string;
 
-  @Column({ name: 'required_point' })
-  requiredPoint: number;
+  @Column({ name: 'required_ticket', default: 1 })
+  requiredTicket: number;
 
   @Column({ name: 'photo_url' })
   photoUrl: string;
 
-  @OneToMany((type) => DrawEntity, (draw) => draw.gift)
+  @OneToMany(() => DrawEntity, (draw) => draw.gift)
   draws: DrawEntity[];
 }
