@@ -11,8 +11,9 @@ export class betQuestionResponseDto {
 
   @IsNumber()
   @ApiProperty({
-    description: '베팅 답변',
+    description: '유저가 베팅한 답변(답변 index)',
     type: Number,
+    required: false,
   })
   answer?: number;
 
@@ -26,14 +27,16 @@ export class betQuestionResponseDto {
   @IsArray()
   @ApiProperty({
     description: '베팅 질문 선택지',
-    type: Array<string>,
+    type: [String],
+    example: ['고려대', '무승부', '연세대'],
   })
   choices: string[];
 
   @IsArray()
   @ApiProperty({
     description: 'percentage',
-    type: Array<number>,
+    type: [Number],
+    example: [33, 33, 34],
   })
   percentage: number[];
 }

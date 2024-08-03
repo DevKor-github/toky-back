@@ -14,6 +14,7 @@ import { University } from 'src/common/enums/university.enum';
 import { betQuestionResponseDto } from './dto/betQuestionResponse.dto';
 import { MatchMap } from 'src/common/enums/event.enum';
 import { TicketService } from 'src/ticket/ticket.service';
+import { ToTalPredictionDto } from './dto/totalPrediction.dto';
 @Injectable()
 export class BetsService {
   constructor(
@@ -52,7 +53,7 @@ export class BetsService {
       if (betQuestion.choice.length === 3) {
         percentage.push(betQuestion.choice3Count / totalAnswerCount);
       }
-      return {
+      const response: betQuestionResponseDto = {
         questionId: betQuestion.id,
         description: betQuestion.description,
         choices: betQuestion.choice,
@@ -61,12 +62,19 @@ export class BetsService {
         )?.answer,
         percentage,
       };
+      return response;
     });
 
     return result;
   }
 
-  async createOrUpdateAnswer(userId: string, createDto: CreateBetAnswerDto) {
+  async createOrUpdateAnswer(
+    userId: string,
+    createDto: CreateBetAnswerDto,
+  ): Promise<{
+    status: number;
+    percentage: number[];
+  }> {
     const { questionId, answer } = createDto;
 
     const question = await this.betQuestionRepository.findOne({
@@ -169,7 +177,7 @@ export class BetsService {
     }
   }
 
-  async getTotalPredictions(userId: string) {
+  async getTotalPredictions(userId: string): Promise<ToTalPredictionDto> {
     const questionId = [1, 6, 11, 16, 21]; //승부에 대한 예측 question id 5개 설정
 
     let numWinKorea = 0;
@@ -191,7 +199,9 @@ export class BetsService {
       else numWinYonsei++;
     });
 
-    return { numWinKorea, numWinYonsei, numDraw };
+    const result: ToTalPredictionDto = { numWinKorea, numWinYonsei, numDraw };
+
+    return result;
   }
 
   // TODO: 캐싱
@@ -204,6 +214,11 @@ export class BetsService {
       where: { phoneNumber: Not(IsNull()), university: University.Korea },
     });
 
-    return { korea, yonsei: totalUserCounts - korea };
+    const result: ParticipantsResponseDto = {
+      korea,
+      yonsei: totalUserCounts - korea,
+    };
+
+    return result;
   }
 }
