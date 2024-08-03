@@ -15,6 +15,7 @@ import { betQuestionResponseDto } from './dto/betQuestionResponse.dto';
 import { MatchMap } from 'src/common/enums/event.enum';
 import { TicketService } from 'src/ticket/ticket.service';
 import { ToTalPredictionDto } from './dto/totalPrediction.dto';
+import { BetShareEntity } from './entities/betShare.entity';
 @Injectable()
 export class BetsService {
   constructor(
@@ -22,6 +23,8 @@ export class BetsService {
     private readonly betAnswerRepository: Repository<BetAnswerEntity>,
     @InjectRepository(BetQuestionEntity)
     private readonly betQuestionRepository: Repository<BetQuestionEntity>,
+    @InjectRepository(BetShareEntity)
+    private readonly betShareRepository: Repository<BetShareEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     private readonly ticketService: TicketService,
@@ -202,6 +205,41 @@ export class BetsService {
     const result: ToTalPredictionDto = { numWinKorea, numWinYonsei, numDraw };
 
     return result;
+  }
+
+  async getSharePredictionTicket(userId: string): Promise<number> {
+    const betShare = await this.betShareRepository.findOne({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
+    });
+
+    if (
+      betShare &&
+      betShare.lastSharePrediction.getTime() >=
+        new Date().getTime() - 1000 * 60 * 60 * 24
+    ) {
+      throw new BadRequestException('Only can get ticket once a day!');
+    }
+
+    if (!betShare) {
+      const newBetShare = this.betShareRepository.create({
+        user: { id: userId },
+        lastSharePrediction: new Date(),
+      });
+      await this.betShareRepository.save(newBetShare);
+    } else {
+      betShare.lastSharePrediction = new Date();
+      await this.betShareRepository.save(betShare);
+    }
+
+    return await this.ticketService.changeTicketCount(
+      userId,
+      1,
+      '승부 예측 공유로 응모권 1장 획득',
+    );
   }
 
   // TODO: 캐싱

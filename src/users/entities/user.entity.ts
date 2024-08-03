@@ -1,4 +1,5 @@
 import { BetAnswerEntity } from 'src/bets/entities/betAnswer.entity';
+import { BetShareEntity } from 'src/bets/entities/betShare.entity';
 import { University } from 'src/common/enums/university.enum';
 import { DrawEntity } from 'src/ticket/entities/draw.entity';
 import { HistoryEntity } from 'src/ticket/entities/history.entity';
@@ -37,13 +38,6 @@ export class UserEntity {
   })
   lastShareRank?: Date;
 
-  @Column({
-    type: Date,
-    nullable: true,
-    default: null,
-  })
-  lastSharePrediction?: Date;
-
   @OneToMany(() => BetAnswerEntity, (bet) => bet.user) // one to many BetDetail
   bets: BetAnswerEntity[];
 
@@ -57,4 +51,8 @@ export class UserEntity {
   @OneToMany(() => DrawEntity, (draw) => draw.user)
   draws: DrawEntity[];
   // one to many draw
+
+  @OneToOne(() => BetShareEntity, { cascade: ['update'] }) // one to many point
+  @JoinColumn({ name: 'bet_share_id' })
+  betShare: BetShareEntity;
 }

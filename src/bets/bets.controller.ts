@@ -114,6 +114,22 @@ export class BetsController {
     return this.betsService.getTotalPredictions(req.user.id);
   }
 
+  @Post('/share')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: '예측 공유 응모권 획득',
+    description:
+      '사용자가 승부예측을 공유한 후 응모권를 획득합니다. 하루에 한번만 가능합니다.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: '예측 공유 응모권 획득 성공, 획득 후 응모권 갯수 반환',
+    type: Number,
+  })
+  async getSharePredictionTicket(@Req() req) {
+    return this.betsService.getSharePredictionTicket(req.user.id);
+  }
+
   @Get('/participants')
   @ApiOperation({
     summary: '베팅 참여자 조회하기',
