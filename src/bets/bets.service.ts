@@ -66,7 +66,7 @@ export class BetsService {
     return result;
   }
 
-  async createOrUpdateAnswer(userid: string, createDto: CreateBetAnswerDto) {
+  async createOrUpdateAnswer(userId: string, createDto: CreateBetAnswerDto) {
     const { questionId, answer } = createDto;
 
     const question = await this.betQuestionRepository.findOne({
@@ -94,7 +94,7 @@ export class BetsService {
         BetAnswerEntity,
         {
           where: {
-            user: { id: userid },
+            user: { id: userId },
             question: { id: questionId },
           },
         },
@@ -123,13 +123,13 @@ export class BetsService {
         );
       } else {
         await queryRunner.manager.insert(BetAnswerEntity, {
-          user: { id: userid },
+          user: { id: userId },
           question: { id: questionId },
           answer,
         });
 
         await this.ticketService.changeTicketCount(
-          userid,
+          userId,
           1,
           `${MatchMap[`${parseInt(((questionId - 1) / 5).toString())}`]} 종목 ${
             questionId % 5 === 0 ? 5 : questionId % 5
