@@ -1,3 +1,4 @@
+import { AttendanceCheckEntity } from 'src/attendance-check/entities/attendance-check.entity';
 import { BetAnswerEntity } from 'src/bets/entities/betAnswer.entity';
 import { University } from 'src/common/enums/university.enum';
 import { DrawEntity } from 'src/ticket/entities/draw.entity';
@@ -57,4 +58,10 @@ export class UserEntity {
   @OneToMany(() => DrawEntity, (draw) => draw.user)
   draws: DrawEntity[];
   // one to many draw
+
+  @OneToMany(
+    () => AttendanceCheckEntity,
+    (attendanceCheck) => attendanceCheck.user,
+  )
+  attendanceChecks: AttendanceCheckEntity[];
 }
