@@ -153,8 +153,7 @@ export class AuthController {
     return {
       name: user.name,
       university: user.university,
-      score: user.point.totalPoint,
-      remain: user.point.remainingPoint,
+      ticket: user.ticket.count,
       phoneNumber: user.phoneNumber,
     };
   }

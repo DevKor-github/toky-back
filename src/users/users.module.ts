@@ -4,19 +4,16 @@ import { UsersController } from './users.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { PhoneEntity } from 'src/auth/entities/phone.entity';
-import { PointEntity } from 'src/points/entities/point.entity';
-import { HistoryEntity } from 'src/points/entities/history.entity';
+import { TicketEntity } from 'src/ticket/entities/ticket.entity';
+import { TicketModule } from 'src/ticket/ticket.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      UserEntity,
-      PhoneEntity,
-      PointEntity,
-      HistoryEntity,
-    ]),
+    TypeOrmModule.forFeature([UserEntity, PhoneEntity, TicketEntity]),
+    TicketModule,
   ],
   controllers: [UsersController],
   providers: [UsersService],
+  exports: [UsersService],
 })
 export class UsersModule {}

@@ -7,30 +7,17 @@ import { UserEntity } from 'src/users/entities/user.entity';
 import { KakaoStrategy } from './strategy/kakao.strategy';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { JwtStrategy as RefreshStrategy } from './strategy/refreshToken.strategy';
-import { UsersService } from 'src/users/users.service';
 import { TokenEntity } from './entities/token.entity';
 import { PhoneEntity } from './entities/phone.entity';
-import { PointEntity } from 'src/points/entities/point.entity';
-import { HistoryEntity } from 'src/points/entities/history.entity';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      UserEntity,
-      TokenEntity,
-      PointEntity,
-      HistoryEntity,
-      PhoneEntity,
-    ]),
+    TypeOrmModule.forFeature([UserEntity, TokenEntity, PhoneEntity]),
     JwtModule.register({}),
+    UsersModule,
   ],
-  providers: [
-    AuthService,
-    UsersService,
-    KakaoStrategy,
-    JwtStrategy,
-    RefreshStrategy,
-  ],
+  providers: [AuthService, KakaoStrategy, JwtStrategy, RefreshStrategy],
   controllers: [AuthController],
 })
 export class AuthModule {}

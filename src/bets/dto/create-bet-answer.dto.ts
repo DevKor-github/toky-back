@@ -16,3 +16,12 @@ export class CreateBetAnswerDto {
   })
   answer!: number;
 }
+
+export class CreateBetAnswerResponseDto {
+  @ApiProperty({
+    description: '답변별 베팅한 사용자 비율',
+    type: [Number],
+    example: [33, 33, 34],
+  })
+  percentage: number[];
+}
