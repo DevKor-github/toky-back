@@ -19,7 +19,10 @@ export class DrawGiftDto {
 }
 
 export class DrawGiftListDto {
-  @ApiProperty({ type: [DrawGiftDto] })
+  @ApiProperty({
+    description: '응모하고자 하는 경품 목록',
+    type: [DrawGiftDto],
+  })
   @IsArray()
   @IsNotEmpty()
   @ValidateNested({ each: true })

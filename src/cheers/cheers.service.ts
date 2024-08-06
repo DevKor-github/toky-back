@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { CheerEntity } from './entities/cheer.entity';
 import { CheerDto } from './dto/cheer.dto';
 import { University } from 'src/common/enums/university.enum';
-import { UserEntity } from 'src/users/entities/user.entity';
+import { CheerRateDto } from './dto/cheerRate.dto';
 
 @Injectable()
 export class CheersService {
@@ -13,15 +13,15 @@ export class CheersService {
     private readonly cheerRepository: Repository<CheerEntity>,
   ) {}
 
-  async cheerUniv(cheerDto: CheerDto, userId: string) {
+  async cheerUniv(cheerDto: CheerDto, userId: string): Promise<void> {
     const existingRecord = await this.cheerRepository.findOne({
       where: { user: { id: userId } },
     });
-    if (existingRecord) {
+    if (existingRecord && existingRecord.univ !== cheerDto.univ) {
       existingRecord.univ = cheerDto.univ;
       await this.cheerRepository.save(existingRecord);
     } else {
-      const newRecord = await this.cheerRepository.create({
+      const newRecord = this.cheerRepository.create({
         univ: cheerDto.univ,
         user: { id: userId },
       });
@@ -30,7 +30,7 @@ export class CheersService {
   }
 
   // TODO: 캐싱이라던지.. 좀 더 효율이 필요.
-  async getRate(userid: string) {
+  async getRate(userid: string): Promise<CheerRateDto> {
     const cheering = await this.cheerRepository.findOne({
       where: { user: { id: userid } },
     });
@@ -41,9 +41,11 @@ export class CheersService {
     const yonsei = await this.cheerRepository.count({
       where: { univ: University.Yonsei },
     });
-    return {
+
+    const result: CheerRateDto = {
       cheering: cheering ? cheering.univ : null,
       participants: [korea, yonsei],
     };
+    return result;
   }
 }

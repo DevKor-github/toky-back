@@ -5,8 +5,8 @@ import { Repository } from 'typeorm';
 import { UserInfoDto } from 'src/users/dto/user-info.dto';
 import { SignupDto } from 'src/auth/dto/signup.dto';
 import { PhoneEntity } from 'src/auth/entities/phone.entity';
-import { PointEntity } from 'src/points/entities/point.entity';
-import { HistoryEntity } from 'src/points/entities/history.entity';
+import { TicketEntity } from 'src/ticket/entities/ticket.entity';
+import { TicketService } from 'src/ticket/ticket.service';
 import { ProfileDto } from './dto/profile.dto';
 
 @Injectable()
@@ -16,10 +16,9 @@ export class UsersService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(PhoneEntity)
     private readonly phoneRepository: Repository<PhoneEntity>,
-    @InjectRepository(PointEntity)
-    private readonly pointRepository: Repository<PointEntity>,
-    @InjectRepository(HistoryEntity)
-    private readonly historyRepository: Repository<HistoryEntity>,
+    @InjectRepository(TicketEntity)
+    private readonly ticketRepository: Repository<TicketEntity>,
+    private readonly ticektService: TicketService,
   ) {}
 
   async findOrCreateById(id: string) {
@@ -35,7 +34,7 @@ export class UsersService {
   async findUserById(id: string) {
     return await this.userRepository.findOne({
       where: { id },
-      relations: ['point'],
+      relations: ['ticket'],
     });
   }
 
@@ -71,25 +70,24 @@ export class UsersService {
       // TODO: 에러
       throw new Error('휴대폰 인증이 되어있지 않습니다.');
     }
-    const pointEntity = await this.pointRepository.create({
-      remainingPoint: 100,
-      totalPoint: 100,
-    });
-    await this.pointRepository.save(pointEntity);
 
-    const historyEntity = await this.historyRepository.create({
-      detail: '가입 완료로 환영 포인트 지급',
-      usedPoint: 100,
-      remainedPoint: 100,
-      user: user,
+    const ticketEntity = this.ticketRepository.create({
+      user,
+      count: 0,
     });
-    await this.historyRepository.save(historyEntity);
+    await this.ticketRepository.save(ticketEntity);
 
     user.name = name;
     user.phoneNumber = phoneNumber;
     user.university = university;
-    user.point = pointEntity;
+    user.ticket = ticketEntity;
     await this.userRepository.save(user);
+
+    await this.ticektService.changeTicketCount(
+      user.id,
+      1,
+      '가입 환영 응모권 1장 지급',
+    );
   }
   async validateUser(id: string) {
     const user = await this.userRepository.findOne({ where: { id } });
