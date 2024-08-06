@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AttendanceCheckEntity } from './entities/attendance-check.entity';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import {
   AttendanceCheckQuizRequestDto,
   AttendanceCheckQuizResponseDto,
@@ -24,6 +24,14 @@ export class AttendanceCheckService {
     userId: string,
     attendanceCheckQuizRequestDto: AttendanceCheckQuizRequestDto,
   ): Promise<AttendanceCheckQuizResponseDto> {
+    const offset = 1000 * 60 * 60 * 9; // 9시간 밀리세컨트 값
+    const koreaTime = new Date(Date.now() + offset);
+    const koreaToday = koreaTime.toISOString().split('T')[0];
+
+    if (koreaToday !== attendanceCheckQuizRequestDto.attendanceDate) {
+      throw new ForbiddenException('Only today is available');
+    }
+
     // 이미 출석체크를 했는지 확인
     const isAlreadyAttended = await transactionManager.findOne(
       AttendanceCheckEntity,
@@ -36,7 +44,7 @@ export class AttendanceCheckService {
     );
 
     if (isAlreadyAttended) {
-      throw new BadRequestException('Already attended');
+      throw new ForbiddenException('Already attended');
     }
 
     const attendance = transactionManager.create(AttendanceCheckEntity, {
