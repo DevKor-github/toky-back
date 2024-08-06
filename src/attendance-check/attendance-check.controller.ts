@@ -24,7 +24,7 @@ import { EntityManager } from 'typeorm';
 import { TransactionInterceptor } from 'src/common/interceptors/transaction.interceptor';
 
 @ApiTags('attendance-check')
-@ApiBearerAuth('')
+@ApiBearerAuth('accessToken')
 @Controller('attendance-check')
 @UseGuards(AuthGuard('jwt'))
 export class AttendanceCheckController {
