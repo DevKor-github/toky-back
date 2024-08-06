@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Post,
+  Query,
   Req,
   UseGuards,
   UseInterceptors,
@@ -47,7 +48,7 @@ export class AttendanceCheckController {
     @TransactionManager() transactionManager: EntityManager,
     @Req() req,
     @Body() attendanceCheckQuizRequestDto: AttendanceCheckQuizRequestDto,
-  ) {
+  ): Promise<AttendanceCheckQuizResponseDto> {
     return this.attendanceCheckService.submitAttendanceCheckQuiz(
       transactionManager,
       req.user.id,
