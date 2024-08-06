@@ -5,6 +5,8 @@ import { DataSource, Repository } from 'typeorm';
 import { DrawEntity } from './entities/draw.entity';
 import { DrawGiftDto } from './dto/draw-gift.dto';
 import { TicketService } from './ticket.service';
+import { GetGiftDto } from './dto/get-gift.dto';
+import { GetDrawCountDto, GiftDrawCount } from './dto/get-drawCount.dto';
 
 @Injectable()
 export class GiftService {
@@ -17,11 +19,23 @@ export class GiftService {
     private readonly ticketService: TicketService,
   ) {}
 
-  async getGiftList(): Promise<GiftEntity[]> {
-    return await this.giftRepository.find();
+  async getGiftList(): Promise<GetGiftDto[]> {
+    const gifts = await this.giftRepository.find();
+    const result: GetGiftDto[] = gifts.map((gift) => {
+      const giftDto: GetGiftDto = {
+        id: gift.id,
+        name: gift.name,
+        requiredTicket: gift.requiredTicket,
+        photoUrl: gift.photoUrl,
+      };
+
+      return giftDto;
+    });
+
+    return result;
   }
 
-  async drawGift(userId: string, draws: DrawGiftDto[]) {
+  async drawGift(userId: string, draws: DrawGiftDto[]): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -58,21 +72,26 @@ export class GiftService {
     }
   }
 
-  async getDrawCount(userId: string) {
-    const allResult = await this.drawRepository
+  async getDrawCount(userId: string): Promise<GetDrawCountDto> {
+    const allResult: GiftDrawCount[] = await this.drawRepository
       .createQueryBuilder('draw')
-      .select('draw.gift_id AS giftId')
-      .addSelect('COUNT(*) AS drawCount')
+      .select('draw.gift_id', 'giftId')
+      .addSelect('COUNT(*)', 'drawCount')
       .groupBy('draw.gift_id')
       .getRawMany();
-    const myResult = await this.drawRepository
+    const myResult: GiftDrawCount[] = await this.drawRepository
       .createQueryBuilder('draw')
-      .select('draw.gift_id AS giftId')
-      .addSelect('COUNT(*) AS drawCount')
+      .select('draw.gift_id', 'giftId')
+      .addSelect('COUNT(*)', 'drawCount')
       .where('draw.user_id = :userId', { userId })
       .groupBy('draw.gift_id')
       .getRawMany();
 
-    return [allResult, myResult];
+    const result: GetDrawCountDto = {
+      allResult,
+      myResult,
+    };
+
+    return result;
   }
 }

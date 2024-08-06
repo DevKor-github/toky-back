@@ -14,6 +14,8 @@ import { University } from 'src/common/enums/university.enum';
 import { betQuestionResponseDto } from './dto/betQuestionResponse.dto';
 import { MatchMap } from 'src/common/enums/event.enum';
 import { TicketService } from 'src/ticket/ticket.service';
+import { ToTalPredictionDto } from './dto/totalPrediction.dto';
+import { BetShareEntity } from './entities/betShare.entity';
 @Injectable()
 export class BetsService {
   constructor(
@@ -21,6 +23,8 @@ export class BetsService {
     private readonly betAnswerRepository: Repository<BetAnswerEntity>,
     @InjectRepository(BetQuestionEntity)
     private readonly betQuestionRepository: Repository<BetQuestionEntity>,
+    @InjectRepository(BetShareEntity)
+    private readonly betShareRepository: Repository<BetShareEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     private readonly ticketService: TicketService,
@@ -52,7 +56,7 @@ export class BetsService {
       if (betQuestion.choice.length === 3) {
         percentage.push(betQuestion.choice3Count / totalAnswerCount);
       }
-      return {
+      const response: betQuestionResponseDto = {
         questionId: betQuestion.id,
         description: betQuestion.description,
         choices: betQuestion.choice,
@@ -61,12 +65,19 @@ export class BetsService {
         )?.answer,
         percentage,
       };
+      return response;
     });
 
     return result;
   }
 
-  async createOrUpdateAnswer(userid: string, createDto: CreateBetAnswerDto) {
+  async createOrUpdateAnswer(
+    userId: string,
+    createDto: CreateBetAnswerDto,
+  ): Promise<{
+    status: number;
+    percentage: number[];
+  }> {
     const { questionId, answer } = createDto;
 
     const question = await this.betQuestionRepository.findOne({
@@ -94,7 +105,7 @@ export class BetsService {
         BetAnswerEntity,
         {
           where: {
-            user: { id: userid },
+            user: { id: userId },
             question: { id: questionId },
           },
         },
@@ -123,13 +134,13 @@ export class BetsService {
         );
       } else {
         await queryRunner.manager.insert(BetAnswerEntity, {
-          user: { id: userid },
+          user: { id: userId },
           question: { id: questionId },
           answer,
         });
 
         await this.ticketService.changeTicketCount(
-          userid,
+          userId,
           1,
           `${MatchMap[`${parseInt(((questionId - 1) / 5).toString())}`]} 종목 ${
             questionId % 5 === 0 ? 5 : questionId % 5
@@ -169,7 +180,7 @@ export class BetsService {
     }
   }
 
-  async getTotalPredictions(userId: string) {
+  async getTotalPredictions(userId: string): Promise<ToTalPredictionDto> {
     const questionId = [1, 6, 11, 16, 21]; //승부에 대한 예측 question id 5개 설정
 
     let numWinKorea = 0;
@@ -191,7 +202,44 @@ export class BetsService {
       else numWinYonsei++;
     });
 
-    return { numWinKorea, numWinYonsei, numDraw };
+    const result: ToTalPredictionDto = { numWinKorea, numWinYonsei, numDraw };
+
+    return result;
+  }
+
+  async getSharePredictionTicket(userId: string): Promise<number> {
+    const betShare = await this.betShareRepository.findOne({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
+    });
+
+    if (
+      betShare &&
+      betShare.lastSharePrediction.getTime() >=
+        new Date().getTime() - 1000 * 60 * 60 * 24
+    ) {
+      throw new BadRequestException('Only can get ticket once a day!');
+    }
+
+    if (!betShare) {
+      const newBetShare = this.betShareRepository.create({
+        user: { id: userId },
+        lastSharePrediction: new Date(),
+      });
+      await this.betShareRepository.save(newBetShare);
+    } else {
+      betShare.lastSharePrediction = new Date();
+      await this.betShareRepository.save(betShare);
+    }
+
+    return await this.ticketService.changeTicketCount(
+      userId,
+      1,
+      '승부 예측 공유로 응모권 1장 획득',
+    );
   }
 
   // TODO: 캐싱
@@ -204,6 +252,11 @@ export class BetsService {
       where: { phoneNumber: Not(IsNull()), university: University.Korea },
     });
 
-    return { korea, yonsei: totalUserCounts - korea };
+    const result: ParticipantsResponseDto = {
+      korea,
+      yonsei: totalUserCounts - korea,
+    };
+
+    return result;
   }
 }

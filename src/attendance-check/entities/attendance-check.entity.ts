@@ -2,7 +2,6 @@ import { Attendance } from 'src/common/enums/attendance.enum';
 import { UserEntity } from 'src/users/entities/user.entity';
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -14,8 +13,8 @@ export class AttendanceCheckEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  @Column({ name: 'created_at' })
+  attendanceDate: string;
 
   @Column({
     type: 'enum',

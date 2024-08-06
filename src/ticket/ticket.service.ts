@@ -31,7 +31,7 @@ export class TicketService {
     entityManager?: EntityManager,
   ): Promise<number> {
     const ticket = entityManager
-      ? await entityManager.withRepository(this.ticketRepository).findOne({
+      ? await entityManager.findOne(TicketEntity, {
           where: {
             user: {
               id: userId,
@@ -52,9 +52,11 @@ export class TicketService {
       throw new BadRequestException("Don't have enough ticket!");
 
     entityManager
-      ? await entityManager
-          .withRepository(this.ticketRepository)
-          .update({ id: ticket.id }, { count: resultAmount })
+      ? await entityManager.update(
+          TicketEntity,
+          { id: ticket.id },
+          { count: resultAmount },
+        )
       : await this.ticketRepository.update(
           { id: ticket.id },
           { count: resultAmount },

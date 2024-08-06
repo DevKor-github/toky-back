@@ -6,6 +6,7 @@ import { UserInfoDto } from 'src/users/dto/user-info.dto';
 import { SignupDto } from 'src/auth/dto/signup.dto';
 import { PhoneEntity } from 'src/auth/entities/phone.entity';
 import { TicketEntity } from 'src/ticket/entities/ticket.entity';
+import { TicketService } from 'src/ticket/ticket.service';
 
 @Injectable()
 export class UsersService {
@@ -16,6 +17,7 @@ export class UsersService {
     private readonly phoneRepository: Repository<PhoneEntity>,
     @InjectRepository(TicketEntity)
     private readonly ticketRepository: Repository<TicketEntity>,
+    private readonly ticektService: TicketService,
   ) {}
 
   async findOrCreateById(id: string) {
@@ -60,7 +62,6 @@ export class UsersService {
       throw new Error('휴대폰 인증이 되어있지 않습니다.');
     }
 
-    //가입 환영 응모권?
     const ticketEntity = this.ticketRepository.create({
       user,
       count: 0,
@@ -72,6 +73,12 @@ export class UsersService {
     user.university = university;
     user.ticket = ticketEntity;
     await this.userRepository.save(user);
+
+    await this.ticektService.changeTicketCount(
+      user.id,
+      1,
+      '가입 환영 응모권 1장 지급',
+    );
   }
   async validateUser(id: string) {
     const user = await this.userRepository.findOne({ where: { id } });
