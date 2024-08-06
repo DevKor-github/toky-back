@@ -1,12 +1,13 @@
 import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AccessUser } from 'src/common/decorators/accessUser.decorator';
 import { JwtPayload } from 'src/common/interfaces/auth.interface';
 import { ProfileDto } from './dto/profile.dto';
 import { UpdateNameDto } from './dto/update-name.dto';
 
+@ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
