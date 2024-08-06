@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, Matches } from 'class-validator';
 
-export class AttendanceCheckQuizRequestDto {
+export class SubmitAttendanceCheckQuizRequestDto {
   @ApiProperty({
     description: '당일 날짜 (YYYY-MM-DD)',
   })
@@ -20,7 +20,7 @@ export class AttendanceCheckQuizRequestDto {
   answer: string;
 }
 
-export class AttendanceCheckQuizResponseDto {
+export class SubmitAttendanceCheckQuizResponseDto {
   @ApiProperty({
     description: '유저 ID',
   })

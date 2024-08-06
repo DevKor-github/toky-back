@@ -3,9 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AttendanceCheckEntity } from './entities/attendance-check.entity';
 import { EntityManager, Repository } from 'typeorm';
 import {
-  AttendanceCheckQuizRequestDto,
-  AttendanceCheckQuizResponseDto,
-} from './dto/attendance-check-quiz';
+  SubmitAttendanceCheckQuizRequestDto,
+  SubmitAttendanceCheckQuizResponseDto,
+} from './dto/submit-attendance-check-quiz';
 import { AttendanceCheckQuizEntity } from './entities/attendance-check-quiz.entity';
 import { TicketService } from 'src/ticket/ticket.service';
 
@@ -22,13 +22,13 @@ export class AttendanceCheckService {
   async submitAttendanceCheckQuiz(
     transactionManager: EntityManager,
     userId: string,
-    attendanceCheckQuizRequestDto: AttendanceCheckQuizRequestDto,
-  ): Promise<AttendanceCheckQuizResponseDto> {
+    submitAttendanceCheckQuizRequestDto: SubmitAttendanceCheckQuizRequestDto,
+  ): Promise<SubmitAttendanceCheckQuizResponseDto> {
     const offset = 1000 * 60 * 60 * 9; // 9시간 밀리세컨트 값
     const koreaTime = new Date(Date.now() + offset);
     const koreaToday = koreaTime.toISOString().split('T')[0];
 
-    if (koreaToday !== attendanceCheckQuizRequestDto.attendanceDate) {
+    if (koreaToday !== submitAttendanceCheckQuizRequestDto.attendanceDate) {
       throw new ForbiddenException('Only today is available');
     }
 
@@ -38,7 +38,7 @@ export class AttendanceCheckService {
       {
         where: {
           user: { id: userId },
-          attendanceDate: attendanceCheckQuizRequestDto.attendanceDate,
+          attendanceDate: submitAttendanceCheckQuizRequestDto.attendanceDate,
         },
       },
     );
@@ -48,7 +48,7 @@ export class AttendanceCheckService {
     }
 
     const attendance = transactionManager.create(AttendanceCheckEntity, {
-      attendanceDate: attendanceCheckQuizRequestDto.attendanceDate,
+      attendanceDate: submitAttendanceCheckQuizRequestDto.attendanceDate,
       user: { id: userId },
     });
 
@@ -56,13 +56,13 @@ export class AttendanceCheckService {
       AttendanceCheckQuizEntity,
       {
         where: {
-          attendanceDate: attendanceCheckQuizRequestDto.attendanceDate,
+          attendanceDate: submitAttendanceCheckQuizRequestDto.attendanceDate,
         },
       },
     );
 
     // 오늘 퀴즈와 사용자가 제출한 답이 일치하는지 확인
-    if (todayQuiz.answer === attendanceCheckQuizRequestDto.answer) {
+    if (todayQuiz.answer === submitAttendanceCheckQuizRequestDto.answer) {
       attendance.isAnswerCorrect = true;
       await this.ticketService.changeTicketCount(
         userId,

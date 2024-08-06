@@ -16,13 +16,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import {
-  AttendanceCheckQuizRequestDto,
-  AttendanceCheckQuizResponseDto,
-} from './dto/attendance-check-quiz';
+
 import { TransactionManager } from 'src/common/decorators/manager.decorator';
 import { EntityManager } from 'typeorm';
 import { TransactionInterceptor } from 'src/common/interceptors/transaction.interceptor';
+import {
+  SubmitAttendanceCheckQuizRequestDto,
+  SubmitAttendanceCheckQuizResponseDto,
+} from './dto/submit-attendance-check-quiz';
 
 @ApiTags('attendance-check')
 @ApiBearerAuth('accessToken')
@@ -36,23 +37,24 @@ export class AttendanceCheckController {
   @Post()
   @ApiOperation({ summary: '출석체크 퀴즈 제출' })
   @ApiBody({
-    type: AttendanceCheckQuizRequestDto,
+    type: SubmitAttendanceCheckQuizRequestDto,
   })
   @ApiResponse({
     status: 201,
     description: '출석체크 퀴즈 제출 성공',
-    type: AttendanceCheckQuizResponseDto,
+    type: SubmitAttendanceCheckQuizResponseDto,
   })
   @UseInterceptors(TransactionInterceptor)
   async submitAttendanceCheckQuiz(
     @TransactionManager() transactionManager: EntityManager,
     @Req() req,
-    @Body() attendanceCheckQuizRequestDto: AttendanceCheckQuizRequestDto,
-  ): Promise<AttendanceCheckQuizResponseDto> {
+    @Body()
+    submitAttendanceCheckQuizRequestDto: SubmitAttendanceCheckQuizRequestDto,
+  ): Promise<SubmitAttendanceCheckQuizResponseDto> {
     return this.attendanceCheckService.submitAttendanceCheckQuiz(
       transactionManager,
       req.user.id,
-      attendanceCheckQuizRequestDto,
+      submitAttendanceCheckQuizRequestDto,
     );
   }
 }
