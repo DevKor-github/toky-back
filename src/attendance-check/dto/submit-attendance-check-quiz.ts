@@ -35,4 +35,10 @@ export class SubmitAttendanceCheckQuizResponseDto {
     description: '정답 여부',
   })
   correct: boolean;
+
+  constructor(userId: string, attendanceDate: string, correct: boolean) {
+    this.userId = userId;
+    this.attendanceDate = attendanceDate;
+    this.correct = correct;
+  }
 }

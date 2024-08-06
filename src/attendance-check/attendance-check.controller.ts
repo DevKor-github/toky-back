@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   Query,
   Req,
@@ -12,6 +13,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -24,6 +26,7 @@ import {
   SubmitAttendanceCheckQuizRequestDto,
   SubmitAttendanceCheckQuizResponseDto,
 } from './dto/submit-attendance-check-quiz';
+import { GetAttendanceCheckQuizResponseDto } from './dto/get-attendance-check-quiz.dto';
 
 @ApiTags('attendance-check')
 @ApiBearerAuth('accessToken')
@@ -56,5 +59,23 @@ export class AttendanceCheckController {
       req.user.id,
       submitAttendanceCheckQuizRequestDto,
     );
+  }
+
+  @Get()
+  @ApiOperation({ summary: '오늘의 출석체크 퀴즈 보기' })
+  @ApiQuery({
+    name: 'today',
+    description: '오늘 날짜(YYYY-MM-DD)',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: '오늘의 출석체크 퀴즈 조회 성공',
+    type: GetAttendanceCheckQuizResponseDto,
+  })
+  async getAttendanceCheckQuiz(
+    @Query('today') today: string,
+  ): Promise<GetAttendanceCheckQuizResponseDto> {
+    return this.attendanceCheckService.getAttendanceCheckQuiz(today);
   }
 }

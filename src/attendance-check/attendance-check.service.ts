@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AttendanceCheckEntity } from './entities/attendance-check.entity';
 import { EntityManager, Repository } from 'typeorm';
@@ -8,6 +13,7 @@ import {
 } from './dto/submit-attendance-check-quiz';
 import { AttendanceCheckQuizEntity } from './entities/attendance-check-quiz.entity';
 import { TicketService } from 'src/ticket/ticket.service';
+import { GetAttendanceCheckQuizResponseDto } from './dto/get-attendance-check-quiz.dto';
 
 @Injectable()
 export class AttendanceCheckService {
@@ -79,10 +85,31 @@ export class AttendanceCheckService {
       );
     }
     await transactionManager.save(attendance);
-    return {
+    return new SubmitAttendanceCheckQuizResponseDto(
       userId,
-      attendanceDate: todayQuiz.attendanceDate,
-      correct: attendance.isAnswerCorrect,
-    };
+      attendance.attendanceDate,
+      attendance.isAnswerCorrect,
+    );
+  }
+
+  async getAttendanceCheckQuiz(
+    today: string,
+  ): Promise<GetAttendanceCheckQuizResponseDto> {
+    if (!today) {
+      throw new BadRequestException('Enter today date!');
+    }
+    const todayQuiz = await this.attendanceCheckQuizRepository.findOne({
+      where: { attendanceDate: today },
+    });
+
+    if (!todayQuiz) {
+      throw new NotFoundException('No quiz today!');
+    }
+
+    return new GetAttendanceCheckQuizResponseDto(
+      today,
+      todayQuiz.id,
+      todayQuiz.description,
+    );
   }
 }
