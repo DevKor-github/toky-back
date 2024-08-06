@@ -26,6 +26,9 @@ export class UsersController {
   @Patch('/profile/name')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '유저 name 변경' })
+  @ApiOkResponse({
+    description: '이름 변경 성공 시',
+  })
   async updateName(
     @AccessUser() user: JwtPayload,
     @Body() updateNameDto: UpdateNameDto,
