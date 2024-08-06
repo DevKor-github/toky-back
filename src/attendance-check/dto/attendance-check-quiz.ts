@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsNotEmpty, IsString, Matches } from 'class-validator';
+import { IsNotEmpty, IsString, Matches } from 'class-validator';
 
 export class AttendanceCheckQuizRequestDto {
   @ApiProperty({
@@ -8,7 +8,7 @@ export class AttendanceCheckQuizRequestDto {
   @Matches(/^\d{4}-\d{2}-\d{2}$/, {
     message: 'Date must be in the format YYYY-MM-DD',
   })
-  @IsDate()
+  @IsString()
   @IsNotEmpty()
   attendanceDate: string;
 
@@ -22,9 +22,14 @@ export class AttendanceCheckQuizRequestDto {
 
 export class AttendanceCheckQuizResponseDto {
   @ApiProperty({
+    description: '유저 ID',
+  })
+  userId: string;
+
+  @ApiProperty({
     description: '당일 날짜',
   })
-  date: string;
+  attendanceDate: string;
 
   @ApiProperty({
     description: '정답 여부',

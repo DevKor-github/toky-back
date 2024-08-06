@@ -1,16 +1,16 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('attendance_check_quiz')
 export class AttendanceCheckQuizEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: false })
+  @Column()
   description: string;
 
-  @Column({ nullable: false })
+  @Column()
   attendanceDate: string;
 
-  @Column({ nullable: false })
-  answewr: string;
+  @Column()
+  answer: string;
 }

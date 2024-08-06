@@ -1,4 +1,3 @@
-import { Attendance } from 'src/common/enums/attendance.enum';
 import { UserEntity } from 'src/users/entities/user.entity';
 import {
   Column,
@@ -13,16 +12,15 @@ export class AttendanceCheckEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'created_at' })
+  @Column()
   attendanceDate: string;
 
   @Column({
-    type: 'enum',
-    enum: Attendance,
-    default: Attendance.Wrong,
+    type: 'boolean',
+    default: false,
     name: 'is_answer_correct',
   })
-  isAnswerCorrect: Attendance;
+  isAnswerCorrect: boolean;
 
   @ManyToOne(() => UserEntity)
   @JoinColumn({ name: 'user_id' })
