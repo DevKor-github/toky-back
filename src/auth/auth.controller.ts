@@ -34,14 +34,14 @@ export class AuthController {
   @Get('/kakao')
   @UseGuards(AuthGuard('kakao'))
   @ApiOperation({ summary: '카카오 로그인' })
-  async kakaoLogin() {
+  async kakaoLogin(): Promise<void> {
     // redirect to kakao login page
   }
 
   @Get('/kakao/redirect')
   @UseGuards(AuthGuard('kakao'))
   @ApiOperation({ summary: '카카오 로그인 후 redirect 되는 url' })
-  async kakaoLoginRedirect(@Req() req, @Res() res: Response) {
+  async kakaoLoginRedirect(@Req() req, @Res() res: Response): Promise<void> {
     const userInfoDto = await this.usersService.findOrCreateById(req.user.id);
 
     const token = await this.authService.getToken(userInfoDto.payload);
@@ -94,7 +94,7 @@ export class AuthController {
     @AccessUser() user: JwtPayload,
     @Res() res: Response,
     @Body() signupDto: SignupDto,
-  ) {
+  ): Promise<void> {
     try {
       console.log(signupDto);
       await this.usersService.signup(signupDto, user.id);
@@ -115,14 +115,14 @@ export class AuthController {
   @Get('/check-name')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'name 중복확인' })
-  async checkname(@Query('name') name: string) {
+  async checkname(@Query('name') name: string): Promise<boolean> {
     return await this.usersService.isValidName(name);
   }
 
   @Get('/need-signup')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '회원가입이 필요한 유저인지 확인' })
-  async checkSignupNeeded(@AccessUser() user: JwtPayload) {
+  async checkSignupNeeded(@AccessUser() user: JwtPayload): Promise<boolean> {
     return await this.usersService.validateUser(user.id);
   }
 }
