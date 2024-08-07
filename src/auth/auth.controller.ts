@@ -21,6 +21,7 @@ import { Response } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RefreshUser } from 'src/common/decorators/refreshUser.decorator';
 import { AccessUser } from 'src/common/decorators/accessUser.decorator';
+import { TokenResponseDto } from './dto/token.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -75,22 +76,8 @@ export class AuthController {
   @ApiOperation({ summary: 'Token 재발급' })
   async refresh(
     @RefreshUser() user: RefreshTokenPayload,
-    @Res() res: Response,
-  ) {
-    try {
-      const { refreshToken, id } = user;
-      await this.authService.checkRefreshToken(refreshToken, id);
-      const payload: JwtPayload = { id, signedAt: new Date().toISOString() };
-      const token = await this.authService.getToken(payload);
-      await this.authService.saveRefreshToken(token.refreshToken, id);
-
-      res.json({
-        accessToken: token.accessToken,
-        refreshToken: token.refreshToken,
-      });
-    } catch (err) {
-      res.sendStatus(401);
-    }
+  ): Promise<TokenResponseDto> {
+    return await this.authService.refreshToken(user);
   }
 
   @Post('/logout')
