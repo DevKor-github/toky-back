@@ -51,9 +51,11 @@ export class UsersService {
       ? false
       : true;
   }
+
   async isValidPhoneNumber(phoneNumber: string) {
+    const dashRemovedPhoneNumber = phoneNumber.replace(/-/g, '');
     return (await this.userRepository.findOne({
-      where: { phoneNumber },
+      where: { phoneNumber: dashRemovedPhoneNumber },
     }))
       ? false
       : true;
@@ -62,14 +64,6 @@ export class UsersService {
   async signup(signupDto: SignupDto, id: string) {
     const { university, name, phoneNumber } = signupDto;
     const user = await this.findUserById(id);
-
-    const phone = await this.phoneRepository.findOne({
-      where: { user: { id }, isValid: true },
-    });
-    if (!phone) {
-      // TODO: 에러
-      throw new Error('휴대폰 인증이 되어있지 않습니다.');
-    }
 
     const ticketEntity = this.ticketRepository.create({
       user,
@@ -89,6 +83,7 @@ export class UsersService {
       '가입 환영 응모권 1장 지급',
     );
   }
+
   async validateUser(id: string) {
     const user = await this.userRepository.findOne({ where: { id } });
     return user.phoneNumber ? true : false;

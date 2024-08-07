@@ -69,6 +69,7 @@ export class AuthController {
 
     res.redirect(process.env.DOMAIN + '/bets');
   }
+
   @Post('/refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
   @ApiOperation({ summary: 'Token 재발급' })
@@ -109,14 +110,7 @@ export class AuthController {
   ) {
     try {
       console.log(signupDto);
-      const isValidCode = await this.authService.checkCode(
-        user.id,
-        signupDto.code,
-      );
-      if (!isValidCode) throw Error('인증번호가 일치하지 않습니다.');
-
       await this.usersService.signup(signupDto, user.id);
-
       res.sendStatus(201);
     } catch (err) {
       console.log(err.message);
@@ -124,42 +118,21 @@ export class AuthController {
     }
   }
 
-  @Post('/phone')
+  @Get('/check-phone-number')
   @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ summary: '휴대폰 인증번호 발송' })
-  async phone(
-    @AccessUser() user: JwtPayload,
-    @Res() res: Response,
-    @Body() phoneDto: PhoneDto,
-  ) {
-    try {
-      const { phoneNumber } = phoneDto;
-      const dashRemovedPhoneNumber = phoneNumber.replace(/-/g, '');
-      const isPhoneValid = await this.usersService.isValidPhoneNumber(
-        dashRemovedPhoneNumber,
-      );
-      if (!isPhoneValid) {
-        throw Error('이미 사용중인 휴대폰 번호입니다.');
-      }
-
-      await this.authService.validatePhoneNumber(
-        dashRemovedPhoneNumber,
-        user.id,
-      );
-      res.sendStatus(200);
-    } catch (err) {
-      return res.status(400).json({ message: err.message });
-    }
+  @ApiOperation({ summary: 'phoneNumber 중복 / 형식 확인' })
+  async checkPhoneNumber(@Body() phoneDto: PhoneDto): Promise<boolean> {
+    return await this.usersService.isValidPhoneNumber(phoneDto.phoneNumber);
   }
 
-  @Get('/checkname')
+  @Get('/check-name')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'name 중복확인' })
   async checkname(@Query('name') name: string) {
     return await this.usersService.isValidName(name);
   }
 
-  @Get('/needsignup')
+  @Get('/need-signup')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '회원가입이 필요한 유저인지 확인' })
   async checkSignupNeeded(@AccessUser() user: JwtPayload) {

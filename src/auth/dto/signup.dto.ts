@@ -10,7 +10,4 @@ export class SignupDto {
 
   @IsEnum(University)
   university: University;
-
-  @IsString()
-  code: string;
 }
