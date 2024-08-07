@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -38,8 +42,7 @@ export class AuthService {
       where: { user: { id }, refreshToken },
     });
     if (!existingToken) {
-      // TODO : throw error
-      throw new Error('Invalid refresh token - id error');
+      throw new NotFoundException('Invalid refresh token - id error');
     }
 
     const newPayload: JwtPayload = { id, signedAt: new Date().toISOString() };
@@ -68,6 +71,13 @@ export class AuthService {
   }
 
   async removeRefreshToken(id: string): Promise<void> {
-    await this.tokenRepository.delete({ user: { id: id } });
+    const token = await this.tokenRepository.findOne({
+      where: { user: { id } },
+    });
+
+    if (!token) {
+      throw new NotFoundException('User not found!');
+    }
+    await this.tokenRepository.remove(token);
   }
 }

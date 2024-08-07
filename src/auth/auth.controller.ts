@@ -83,7 +83,7 @@ export class AuthController {
   @Post('/logout')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '로그아웃' })
-  async logout(@AccessUser() user: JwtPayload) {
+  async logout(@AccessUser() user: JwtPayload): Promise<void> {
     await this.authService.removeRefreshToken(user.id);
   }
 
