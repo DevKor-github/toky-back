@@ -27,6 +27,7 @@ import {
   SubmitAttendanceCheckQuizResponseDto,
 } from './dto/submit-attendance-check-quiz';
 import { GetAttendanceCheckQuizResponseDto } from './dto/get-attendance-check-quiz.dto';
+import { GetMyAttendanceResponseDto } from './dto/get-my-attendance.dto';
 
 @ApiTags('attendance-check')
 @ApiBearerAuth('accessToken')
@@ -59,6 +60,18 @@ export class AttendanceCheckController {
       req.user.id,
       submitAttendanceCheckQuizRequestDto,
     );
+  }
+
+  @Get('my-attendance')
+  @ApiOperation({ summary: '나의 출석체크 여부 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '나의 출석체크 여부 조회 성공',
+    type: GetMyAttendanceResponseDto,
+    isArray: true,
+  })
+  async getMyAttendance(@Req() req): Promise<GetMyAttendanceResponseDto[]> {
+    return this.attendanceCheckService.getMyAttendance(req.user.id);
   }
 
   @Get()

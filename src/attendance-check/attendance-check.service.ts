@@ -14,6 +14,7 @@ import {
 import { AttendanceCheckQuizEntity } from './entities/attendance-check-quiz.entity';
 import { TicketService } from 'src/ticket/ticket.service';
 import { GetAttendanceCheckQuizResponseDto } from './dto/get-attendance-check-quiz.dto';
+import { GetMyAttendanceResponseDto } from './dto/get-my-attendance.dto';
 
 @Injectable()
 export class AttendanceCheckService {
@@ -110,6 +111,17 @@ export class AttendanceCheckService {
       today,
       todayQuiz.id,
       todayQuiz.description,
+    );
+  }
+
+  async getMyAttendance(userId: string): Promise<GetMyAttendanceResponseDto[]> {
+    const myAttendance = await this.attendanceCheckRepository.find({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+
+    return myAttendance.map(
+      (attendance) => new GetMyAttendanceResponseDto(attendance),
     );
   }
 }
