@@ -27,12 +27,12 @@ export class UsersController {
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '유저 name 변경' })
   @ApiOkResponse({
-    description: '이름 변경 성공 시',
+    description: '이름 변경 성공 시 업데이트된 프로필 반환',
   })
   async updateName(
     @AccessUser() user: JwtPayload,
     @Body() updateNameDto: UpdateNameDto,
-  ): Promise<void> {
-    return this.usersService.updateName(user.id, updateNameDto.name);
+  ): Promise<ProfileDto> {
+    return await this.usersService.updateName(user.id, updateNameDto.name);
   }
 }
