@@ -12,16 +12,23 @@ import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
-import { PhoneDto } from './dto/phone.dto';
+import { CheckPhoneDto } from './dto/check-phone.dto';
 import {
   JwtPayload,
   RefreshTokenPayload,
 } from 'src/common/interfaces/auth.interface';
 import { Response } from 'express';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { RefreshUser } from 'src/common/decorators/refreshUser.decorator';
 import { AccessUser } from 'src/common/decorators/accessUser.decorator';
 import { TokenResponseDto } from './dto/token.dto';
+import { CheckNameDto } from './dto/check-name.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -74,6 +81,11 @@ export class AuthController {
   @Post('/refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
   @ApiOperation({ summary: 'Token 재발급' })
+  @ApiResponse({
+    status: 201,
+    description: 'Token 재발급 성공 시',
+    type: TokenResponseDto,
+  })
   async refresh(
     @RefreshUser() user: RefreshTokenPayload,
   ): Promise<TokenResponseDto> {
@@ -83,13 +95,23 @@ export class AuthController {
   @Post('/logout')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '로그아웃' })
+  @ApiResponse({ status: 201, description: '로그아웃 성공 시' })
   async logout(@AccessUser() user: JwtPayload): Promise<void> {
     await this.authService.removeRefreshToken(user.id);
   }
 
   @Post('/signup')
   @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ summary: '인증번호 확인 및 회원가입' })
+  @ApiOperation({ summary: '회원가입' })
+  @ApiBody({ type: SignupDto })
+  @ApiResponse({
+    status: 201,
+    description: '회원가입 성공 시',
+  })
+  @ApiResponse({
+    status: 400,
+    description: '회원가입 실패 시',
+  })
   async signup(
     @AccessUser() user: JwtPayload,
     @Res() res: Response,
@@ -108,20 +130,29 @@ export class AuthController {
   @Get('/check-phone-number')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'phoneNumber 중복 / 형식 확인' })
-  async checkPhoneNumber(@Body() phoneDto: PhoneDto): Promise<boolean> {
-    return await this.usersService.isValidPhoneNumber(phoneDto.phoneNumber);
+  @ApiQuery({ name: 'phoneNumber', description: '전화번호' })
+  @ApiResponse({ status: 200, description: '확인 완료 시', type: Boolean })
+  async checkPhoneNumber(
+    @Query() checkPhoneDto: CheckPhoneDto,
+  ): Promise<boolean> {
+    return await this.usersService.isValidPhoneNumber(
+      checkPhoneDto.phoneNumber,
+    );
   }
 
   @Get('/check-name')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'name 중복확인' })
-  async checkname(@Query('name') name: string): Promise<boolean> {
-    return await this.usersService.isValidName(name);
+  @ApiQuery({ name: 'name', description: '유저 이름' })
+  @ApiResponse({ status: 200, description: '확인 완료 시', type: Boolean })
+  async checkname(@Query() checkNameDto: CheckNameDto): Promise<boolean> {
+    return await this.usersService.isValidName(checkNameDto.name);
   }
 
   @Get('/need-signup')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '회원가입이 필요한 유저인지 확인' })
+  @ApiResponse({ status: 200, description: '확인 완료 시', type: Boolean })
   async checkSignupNeeded(@AccessUser() user: JwtPayload): Promise<boolean> {
     return await this.usersService.validateUser(user.id);
   }
