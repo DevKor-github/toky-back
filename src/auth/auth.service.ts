@@ -38,7 +38,7 @@ export class AuthService {
 
   async refreshToken(payload: RefreshTokenPayload): Promise<TokenResponseDto> {
     const { refreshToken, id } = payload;
-    const existingToken = await this.tokenRepository.find({
+    const existingToken = await this.tokenRepository.findOne({
       where: { user: { id }, refreshToken },
     });
     if (!existingToken) {
@@ -62,12 +62,21 @@ export class AuthService {
   }
 
   async saveRefreshToken(refreshToken: string, id: string): Promise<void> {
-    const token = this.tokenRepository.create({
-      refreshToken,
-      user: { id },
+    const existingToken = await this.tokenRepository.findOne({
+      where: { user: { id } },
     });
-    await this.tokenRepository.save(token);
-    console.log('saved');
+    if (existingToken) {
+      existingToken.refreshToken = refreshToken;
+      await this.tokenRepository.save(existingToken);
+      console.log('updated');
+    } else {
+      const token = this.tokenRepository.create({
+        refreshToken,
+        user: { id },
+      });
+      await this.tokenRepository.save(token);
+      console.log('saved');
+    }
   }
 
   async removeRefreshToken(id: string): Promise<void> {
