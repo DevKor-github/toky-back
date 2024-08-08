@@ -131,7 +131,11 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'phoneNumber 중복 / 형식 확인' })
   @ApiQuery({ name: 'phoneNumber', description: '전화번호' })
-  @ApiResponse({ status: 200, description: '확인 완료 시', type: Boolean })
+  @ApiResponse({
+    status: 200,
+    description: '중복 / 형식 이상 없을 시 true',
+    type: Boolean,
+  })
   async checkPhoneNumber(
     @Query() checkPhoneDto: CheckPhoneDto,
   ): Promise<boolean> {
@@ -144,7 +148,11 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'name 중복확인' })
   @ApiQuery({ name: 'name', description: '유저 이름' })
-  @ApiResponse({ status: 200, description: '확인 완료 시', type: Boolean })
+  @ApiResponse({
+    status: 200,
+    description: '중복 X 확인 완료 시 true',
+    type: Boolean,
+  })
   async checkname(@Query() checkNameDto: CheckNameDto): Promise<boolean> {
     return await this.usersService.isValidName(checkNameDto.name);
   }
@@ -152,7 +160,11 @@ export class AuthController {
   @Get('/need-signup')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: '회원가입이 필요한 유저인지 확인' })
-  @ApiResponse({ status: 200, description: '확인 완료 시', type: Boolean })
+  @ApiResponse({
+    status: 200,
+    description: '회원가입 이미 했을 시 true',
+    type: Boolean,
+  })
   async checkSignupNeeded(@AccessUser() user: JwtPayload): Promise<boolean> {
     return await this.usersService.validateUser(user.id);
   }
