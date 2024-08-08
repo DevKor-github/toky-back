@@ -96,11 +96,12 @@ export class UsersService {
       throw new NotFoundException('user not found!');
     }
 
-    const updated = await this.userRepository.update(id, { name: name });
+    const updated = await this.userRepository.update(id, { name });
     if (updated.affected === 0) {
       throw new InternalServerErrorException('update failed');
     }
 
+    user.name = name;
     return new ProfileDto(user);
   }
 }
