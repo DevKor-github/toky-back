@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Patch,
   Post,
   Query,
   Req,
@@ -13,30 +12,43 @@ import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
-import { PhoneDto } from './dto/phone.dto';
-import { JwtPayload } from 'src/common/interfaces/JwtPayload';
-import { UpdateNameDto } from './dto/update-name.dto';
+import { CheckPhoneDto } from './dto/check-phone.dto';
+import {
+  JwtPayload,
+  RefreshTokenPayload,
+} from 'src/common/interfaces/auth.interface';
 import { Response } from 'express';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { RefreshUser } from 'src/common/decorators/refreshUser.decorator';
+import { AccessUser } from 'src/common/decorators/accessUser.decorator';
+import { TokenResponseDto } from './dto/token.dto';
+import { CheckNameDto } from './dto/check-name.dto';
 
 @Controller('auth')
+@ApiTags('auth')
 export class AuthController {
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
-  ) {
-    this.usersService = usersService;
-    this.authService = authService;
-  }
+  ) {}
 
   @Get('/kakao')
   @UseGuards(AuthGuard('kakao'))
-  async kakaoLogin() {
+  @ApiOperation({ summary: '카카오 로그인' })
+  async kakaoLogin(): Promise<void> {
     // redirect to kakao login page
   }
 
   @Get('/kakao/redirect')
   @UseGuards(AuthGuard('kakao'))
-  async kakaoLoginRedirect(@Req() req, @Res() res: Response) {
+  @ApiOperation({ summary: '카카오 로그인 후 redirect 되는 url' })
+  async kakaoLoginRedirect(@Req() req, @Res() res: Response): Promise<void> {
     const userInfoDto = await this.usersService.findOrCreateById(req.user.id);
 
     const token = await this.authService.getToken(userInfoDto.payload);
@@ -65,44 +77,49 @@ export class AuthController {
 
     res.redirect(process.env.DOMAIN + '/bets');
   }
+
   @Post('/refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
-  async refresh(@Req() req, @Res() res) {
-    try {
-      const { refreshToken, id } = req.user;
-      await this.authService.checkRefreshToken(refreshToken, id);
-      const payload: JwtPayload = { id, signedAt: new Date().toISOString() };
-      const token = await this.authService.getToken(payload);
-      await this.authService.saveRefreshToken(token.refreshToken, id);
-
-      res.json({
-        accessToken: token.accessToken,
-        refreshToken: token.refreshToken,
-      });
-    } catch (err) {
-      res.sendStatus(401);
-    }
+  @ApiOperation({ summary: 'Token 재발급' })
+  @ApiResponse({
+    status: 201,
+    description: 'Token 재발급 성공 시',
+    type: TokenResponseDto,
+  })
+  async refresh(
+    @RefreshUser() user: RefreshTokenPayload,
+  ): Promise<TokenResponseDto> {
+    return await this.authService.refreshToken(user);
   }
 
-  @Get('/logout')
+  @Post('/logout')
   @UseGuards(AuthGuard('jwt'))
-  async logout(@Req() req) {
-    const { id } = req.user;
-    await this.authService.removeRefreshToken(id);
+  @ApiOperation({ summary: '로그아웃' })
+  @ApiResponse({ status: 201, description: '로그아웃 성공 시' })
+  async logout(@AccessUser() user: JwtPayload): Promise<void> {
+    await this.authService.removeRefreshToken(user.id);
   }
 
   @Post('/signup')
   @UseGuards(AuthGuard('jwt'))
-  async signup(@Req() req, @Res() res, @Body() signupDto: SignupDto) {
+  @ApiOperation({ summary: '회원가입' })
+  @ApiBody({ type: SignupDto })
+  @ApiResponse({
+    status: 201,
+    description: '회원가입 성공 시',
+  })
+  @ApiResponse({
+    status: 400,
+    description: '회원가입 실패 시',
+  })
+  async signup(
+    @AccessUser() user: JwtPayload,
+    @Res() res: Response,
+    @Body() signupDto: SignupDto,
+  ): Promise<void> {
     try {
       console.log(signupDto);
-      const { id } = req.user;
-
-      const isValidCode = await this.authService.checkCode(id, signupDto.code);
-      if (!isValidCode) throw Error('인증번호가 일치하지 않습니다.');
-
-      await this.usersService.signup(signupDto, id);
-
+      await this.usersService.signup(signupDto, user.id);
       res.sendStatus(201);
     } catch (err) {
       console.log(err.message);
@@ -110,59 +127,45 @@ export class AuthController {
     }
   }
 
-  @Post('/phone')
+  @Get('/check-phone-number')
   @UseGuards(AuthGuard('jwt'))
-  async phone(@Req() req, @Res() res, @Body() phoneDto: PhoneDto) {
-    try {
-      const { id } = req.user;
-      const { phoneNumber } = phoneDto;
-      const dashRemovedPhoneNumber = phoneNumber.replace(/-/g, '');
-      const isPhoneValid = await this.usersService.isValidPhoneNumber(
-        dashRemovedPhoneNumber,
-      );
-      if (!isPhoneValid) {
-        throw Error('이미 사용중인 휴대폰 번호입니다.');
-      }
-
-      await this.authService.validatePhoneNumber(dashRemovedPhoneNumber, id);
-      res.sendStatus(200);
-    } catch (err) {
-      return res.status(400).json({ message: err.message });
-    }
+  @ApiOperation({ summary: 'phoneNumber 중복 / 형식 확인' })
+  @ApiQuery({ name: 'phoneNumber', description: '전화번호' })
+  @ApiResponse({
+    status: 200,
+    description: '중복 / 형식 이상 없을 시 true',
+    type: Boolean,
+  })
+  async checkPhoneNumber(
+    @Query() checkPhoneDto: CheckPhoneDto,
+  ): Promise<boolean> {
+    return await this.usersService.isValidPhoneNumber(
+      checkPhoneDto.phoneNumber,
+    );
   }
 
-  @Get('/checkname')
+  @Get('/check-name')
   @UseGuards(AuthGuard('jwt'))
-  async checkname(@Query('name') name: string) {
-    return await this.usersService.isValidName(name);
+  @ApiOperation({ summary: 'name 중복확인' })
+  @ApiQuery({ name: 'name', description: '유저 이름' })
+  @ApiResponse({
+    status: 200,
+    description: '중복 X 확인 완료 시 true',
+    type: Boolean,
+  })
+  async checkname(@Query() checkNameDto: CheckNameDto): Promise<boolean> {
+    return await this.usersService.isValidName(checkNameDto.name);
   }
 
-  @Get('/needsignup')
+  @Get('/need-signup')
   @UseGuards(AuthGuard('jwt'))
-  async checkSignupNeeded(@Req() req) {
-    const { id } = req.user;
-    return await this.usersService.validateUser(id);
-  }
-
-  @Get('/profile')
-  @UseGuards(AuthGuard('jwt'))
-  async getUserProfile(@Req() req) {
-    const { id } = req.user;
-    const user = await this.usersService.findUserById(id);
-
-    return {
-      name: user.name,
-      university: user.university,
-      ticket: user.ticket.count,
-      phoneNumber: user.phoneNumber,
-    };
-  }
-
-  @Post('/update/name')
-  @UseGuards(AuthGuard('jwt'))
-  async updateName(@Req() req, @Body() updateNameDto: UpdateNameDto) {
-    const { id } = req.user;
-
-    return this.usersService.updateName(id, updateNameDto.name);
+  @ApiOperation({ summary: '회원가입이 필요한 유저인지 확인' })
+  @ApiResponse({
+    status: 200,
+    description: '회원가입 이미 했을 시 true',
+    type: Boolean,
+  })
+  async checkSignupNeeded(@AccessUser() user: JwtPayload): Promise<boolean> {
+    return await this.usersService.validateUser(user.id);
   }
 }

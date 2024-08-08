@@ -11,12 +11,15 @@ export class KakaoStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(_: string, __: string, profile: Profile) {
-    const { id } = profile;
+  async validate(
+    _accessToken: string,
+    _refreshToken: string,
+    profile: Profile,
+  ) {
+    if (!profile.id) {
+      throw new Error('Failed to get Kakao user ID');
+    }
 
-    const user = {
-      id,
-    };
-    return user;
+    return { id: profile.id };
   }
 }
