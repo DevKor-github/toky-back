@@ -10,6 +10,7 @@ import {
 import { TicketService } from './ticket.service';
 import { AuthGuard } from '@nestjs/passport';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiQuery,
@@ -24,6 +25,7 @@ import { GetGiftDto } from './dto/get-gift.dto';
 import { GetDrawCountDto } from './dto/get-drawCount.dto';
 
 @ApiTags('ticket')
+@ApiBearerAuth('accessToken')
 @Controller('ticket')
 export class TicketController {
   constructor(

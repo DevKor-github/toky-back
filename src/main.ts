@@ -20,7 +20,26 @@ async function bootstrap() {
     .setTitle('Toky Server')
     .setDescription('Toky API Description')
     .setVersion('1.0.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        name: 'JWT',
+        description: 'JWT token',
+        in: 'header',
+      },
+      'accessToken',
+    )
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        name: 'JWT',
+        description: 'JWT token',
+        in: 'header',
+      },
+      'refreshToken',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
