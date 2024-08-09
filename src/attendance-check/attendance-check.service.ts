@@ -13,7 +13,10 @@ import {
 } from './dto/submit-attendance-check-quiz';
 import { AttendanceCheckQuizEntity } from './entities/attendance-check-quiz.entity';
 import { TicketService } from 'src/ticket/ticket.service';
-import { GetAttendanceCheckQuizResponseDto } from './dto/get-attendance-check-quiz.dto';
+import {
+  GetAttendanceCheckQuizRequestDto,
+  GetAttendanceCheckQuizResponseDto,
+} from './dto/get-attendance-check-quiz.dto';
 import { GetMyAttendanceResponseDto } from './dto/get-my-attendance.dto';
 
 @Injectable()
@@ -94,8 +97,9 @@ export class AttendanceCheckService {
   }
 
   async getAttendanceCheckQuiz(
-    today: string,
+    getAttendanceCheckQuizRequestDto: GetAttendanceCheckQuizRequestDto,
   ): Promise<GetAttendanceCheckQuizResponseDto> {
+    const today = getAttendanceCheckQuizRequestDto.attendanceDate;
     if (!today) {
       throw new BadRequestException('Enter today date!');
     }

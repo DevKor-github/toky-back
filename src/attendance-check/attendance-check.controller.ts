@@ -26,7 +26,10 @@ import {
   SubmitAttendanceCheckQuizRequestDto,
   SubmitAttendanceCheckQuizResponseDto,
 } from './dto/submit-attendance-check-quiz';
-import { GetAttendanceCheckQuizResponseDto } from './dto/get-attendance-check-quiz.dto';
+import {
+  GetAttendanceCheckQuizRequestDto,
+  GetAttendanceCheckQuizResponseDto,
+} from './dto/get-attendance-check-quiz.dto';
 import { GetMyAttendanceResponseDto } from './dto/get-my-attendance.dto';
 
 @ApiTags('attendance-check')
@@ -77,7 +80,7 @@ export class AttendanceCheckController {
   @Get()
   @ApiOperation({ summary: '오늘의 출석체크 퀴즈 보기' })
   @ApiQuery({
-    name: 'today',
+    name: 'attendanceDate',
     description: '오늘 날짜(YYYY-MM-DD)',
     required: true,
   })
@@ -87,8 +90,10 @@ export class AttendanceCheckController {
     type: GetAttendanceCheckQuizResponseDto,
   })
   async getAttendanceCheckQuiz(
-    @Query('today') today: string,
+    @Query() getAttendanceCheckQuizRequestDto: GetAttendanceCheckQuizRequestDto,
   ): Promise<GetAttendanceCheckQuizResponseDto> {
-    return this.attendanceCheckService.getAttendanceCheckQuiz(today);
+    return this.attendanceCheckService.getAttendanceCheckQuiz(
+      getAttendanceCheckQuizRequestDto,
+    );
   }
 }
