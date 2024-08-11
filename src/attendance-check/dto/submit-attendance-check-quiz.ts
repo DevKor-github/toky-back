@@ -1,17 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Matches } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class SubmitAttendanceCheckQuizRequestDto {
-  @ApiProperty({
-    description: '당일 날짜 (YYYY-MM-DD)',
-  })
-  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
-    message: 'Date must be in the format YYYY-MM-DD',
-  })
-  @IsString()
-  @IsNotEmpty()
-  attendanceDate: string;
-
   @ApiProperty({
     description: '제출한 답',
   })

@@ -38,17 +38,13 @@ export class AttendanceCheckService {
     const koreaTime = new Date(Date.now() + offset);
     const koreaToday = koreaTime.toISOString().split('T')[0];
 
-    if (koreaToday !== submitAttendanceCheckQuizRequestDto.attendanceDate) {
-      throw new ForbiddenException('Only today is available');
-    }
-
     // 이미 출석체크를 했는지 확인
     const isAlreadyAttended = await transactionManager.findOne(
       AttendanceCheckEntity,
       {
         where: {
           user: { id: userId },
-          attendanceDate: submitAttendanceCheckQuizRequestDto.attendanceDate,
+          attendanceDate: koreaToday,
         },
       },
     );
@@ -58,7 +54,7 @@ export class AttendanceCheckService {
     }
 
     const attendance = transactionManager.create(AttendanceCheckEntity, {
-      attendanceDate: submitAttendanceCheckQuizRequestDto.attendanceDate,
+      attendanceDate: koreaToday,
       user: { id: userId },
     });
 
@@ -66,7 +62,7 @@ export class AttendanceCheckService {
       AttendanceCheckQuizEntity,
       {
         where: {
-          attendanceDate: submitAttendanceCheckQuizRequestDto.attendanceDate,
+          attendanceDate: koreaToday,
         },
       },
     );
