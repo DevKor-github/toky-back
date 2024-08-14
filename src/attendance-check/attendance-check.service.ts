@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -13,10 +12,7 @@ import {
 } from './dto/submit-attendance-check-quiz';
 import { AttendanceCheckQuizEntity } from './entities/attendance-check-quiz.entity';
 import { TicketService } from 'src/ticket/ticket.service';
-import {
-  GetAttendanceCheckQuizRequestDto,
-  GetAttendanceCheckQuizResponseDto,
-} from './dto/get-attendance-check-quiz.dto';
+import { GetAttendanceCheckQuizResponseDto } from './dto/get-attendance-check-quiz.dto';
 import { GetMyAttendanceResponseDto } from './dto/get-my-attendance.dto';
 
 @Injectable()
@@ -92,15 +88,13 @@ export class AttendanceCheckService {
     );
   }
 
-  async getAttendanceCheckQuiz(
-    getAttendanceCheckQuizRequestDto: GetAttendanceCheckQuizRequestDto,
-  ): Promise<GetAttendanceCheckQuizResponseDto> {
-    const today = getAttendanceCheckQuizRequestDto.attendanceDate;
-    if (!today) {
-      throw new BadRequestException('Enter today date!');
-    }
+  async getAttendanceCheckQuiz(): Promise<GetAttendanceCheckQuizResponseDto> {
+    const offset = 1000 * 60 * 60 * 9; // 9시간 밀리세컨트 값
+    const koreaTime = new Date(Date.now() + offset);
+    const koreaToday = koreaTime.toISOString().split('T')[0];
+
     const todayQuiz = await this.attendanceCheckQuizRepository.findOne({
-      where: { attendanceDate: today },
+      where: { attendanceDate: koreaToday },
     });
 
     if (!todayQuiz) {
@@ -108,7 +102,7 @@ export class AttendanceCheckService {
     }
 
     return new GetAttendanceCheckQuizResponseDto(
-      today,
+      koreaToday,
       todayQuiz.id,
       todayQuiz.description,
     );

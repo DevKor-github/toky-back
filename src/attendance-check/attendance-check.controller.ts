@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Post,
-  Query,
   Req,
   UseGuards,
   UseInterceptors,
@@ -13,7 +12,6 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
-  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -26,10 +24,7 @@ import {
   SubmitAttendanceCheckQuizRequestDto,
   SubmitAttendanceCheckQuizResponseDto,
 } from './dto/submit-attendance-check-quiz';
-import {
-  GetAttendanceCheckQuizRequestDto,
-  GetAttendanceCheckQuizResponseDto,
-} from './dto/get-attendance-check-quiz.dto';
+import { GetAttendanceCheckQuizResponseDto } from './dto/get-attendance-check-quiz.dto';
 import { GetMyAttendanceResponseDto } from './dto/get-my-attendance.dto';
 
 @ApiTags('attendance-check')
@@ -79,21 +74,12 @@ export class AttendanceCheckController {
 
   @Get()
   @ApiOperation({ summary: '오늘의 출석체크 퀴즈 보기' })
-  @ApiQuery({
-    name: 'attendanceDate',
-    description: '오늘 날짜(YYYY-MM-DD)',
-    required: true,
-  })
   @ApiResponse({
     status: 200,
     description: '오늘의 출석체크 퀴즈 조회 성공',
     type: GetAttendanceCheckQuizResponseDto,
   })
-  async getAttendanceCheckQuiz(
-    @Query() getAttendanceCheckQuizRequestDto: GetAttendanceCheckQuizRequestDto,
-  ): Promise<GetAttendanceCheckQuizResponseDto> {
-    return this.attendanceCheckService.getAttendanceCheckQuiz(
-      getAttendanceCheckQuizRequestDto,
-    );
+  async getAttendanceCheckQuiz(): Promise<GetAttendanceCheckQuizResponseDto> {
+    return this.attendanceCheckService.getAttendanceCheckQuiz();
   }
 }
