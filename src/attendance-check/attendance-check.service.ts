@@ -111,7 +111,6 @@ export class AttendanceCheckService {
   async getMyAttendance(userId: string): Promise<GetMyAttendanceResponseDto[]> {
     const myAttendance = await this.attendanceCheckRepository.find({
       where: { user: { id: userId } },
-      relations: ['user'],
     });
 
     return myAttendance.map(
