@@ -64,18 +64,16 @@ export class UsersService {
     const { university, name, phoneNumber } = signupDto;
     const user = await this.findUserById(id);
 
-    if (!user) {
-      const ticketEntity = this.ticketRepository.create({
-        user,
-        count: 0,
-      });
-      await this.ticketRepository.save(ticketEntity);
-      user.ticket = ticketEntity;
-    }
+    const ticketEntity = this.ticketRepository.create({
+      user,
+      count: 0,
+    });
+    await this.ticketRepository.save(ticketEntity);
 
     user.name = name;
     user.phoneNumber = phoneNumber;
     user.university = university;
+    user.ticket = ticketEntity;
     await this.userRepository.save(user);
 
     await this.ticektService.changeTicketCount(
