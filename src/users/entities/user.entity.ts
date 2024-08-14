@@ -21,7 +21,7 @@ export class UserEntity {
   @Column({ nullable: true, length: 20 })
   name?: string;
 
-  @Column({ name: 'phone_no', nullable: true, length: 12 })
+  @Column({ name: 'phone_no', nullable: true, length: 14 })
   phoneNumber?: string;
 
   @Column({
