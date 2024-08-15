@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
@@ -27,4 +28,9 @@ export class SignupDto {
   @IsNotEmpty()
   @IsEnum(University)
   university: University;
+
+  @ApiProperty({ description: '친구 초대 코드' })
+  @IsOptional()
+  @IsString()
+  inviteCode: string;
 }

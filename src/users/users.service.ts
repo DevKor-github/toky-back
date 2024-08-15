@@ -73,7 +73,30 @@ export class UsersService {
     user.phoneNumber = phoneNumber;
     user.university = university;
     user.ticket = ticketEntity;
+    user.inviteCode = this.generateRandomString();
     await transactionManager.save(user);
+
+    if (signupDto.inviteCode) {
+      const inviteUser = await transactionManager.findOne(UserEntity, {
+        where: { inviteCode: signupDto.inviteCode },
+      });
+
+      if (inviteUser) {
+        await this.ticektService.changeTicketCount(
+          inviteUser.id,
+          1,
+          '친구가 초대 링크로 가입하여 1장 지급',
+          transactionManager,
+        );
+
+        await this.ticektService.changeTicketCount(
+          user.id,
+          1,
+          '초대 링크로 가입하여 1장 지급',
+          transactionManager,
+        );
+      }
+    }
 
     await this.ticektService.changeTicketCount(
       user.id,
@@ -104,5 +127,17 @@ export class UsersService {
     }
 
     return new ProfileDto(await this.findUserById(id));
+  }
+
+  private generateRandomString(): string {
+    const characters =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+      result += characters.charAt(
+        Math.floor(Math.random() * characters.length),
+      );
+    }
+    return result;
   }
 }
