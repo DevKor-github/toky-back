@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsString, Matches } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsString,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 import { University } from 'src/common/enums/university.enum';
 
 export class SignupDto {
@@ -14,6 +20,7 @@ export class SignupDto {
   @ApiProperty({ description: '유저 이름' })
   @IsNotEmpty()
   @IsString()
+  @MaxLength(10, { message: '10자 이내로 입력해주세요' })
   name: string;
 
   @ApiProperty({ description: '대학교' })

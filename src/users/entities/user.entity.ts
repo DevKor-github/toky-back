@@ -19,7 +19,7 @@ export class UserEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column({ nullable: true, length: 20 })
+  @Column({ nullable: true, length: 10 })
   name?: string;
 
   @Column({ name: 'phone_no', nullable: true, length: 11 })

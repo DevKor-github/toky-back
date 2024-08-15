@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { UserInfoDto } from 'src/users/dto/user-info.dto';
 import { SignupDto } from 'src/auth/dto/signup.dto';
 import { TicketEntity } from 'src/ticket/entities/ticket.entity';
@@ -53,26 +53,33 @@ export class UsersService {
       : true;
   }
 
-  async signup(signupDto: SignupDto, id: string): Promise<void> {
+  async signup(
+    transactionManager: EntityManager,
+    signupDto: SignupDto,
+    id: string,
+  ): Promise<void> {
     const { university, name, phoneNumber } = signupDto;
-    const user = await this.findUserById(id);
+    const user = await transactionManager.findOne(UserEntity, {
+      where: { id },
+    });
 
-    const ticketEntity = this.ticketRepository.create({
+    const ticketEntity = transactionManager.create(TicketEntity, {
       user,
       count: 0,
     });
-    await this.ticketRepository.save(ticketEntity);
+    await transactionManager.save(ticketEntity);
 
     user.name = name;
     user.phoneNumber = phoneNumber;
     user.university = university;
     user.ticket = ticketEntity;
-    await this.userRepository.save(user);
+    await transactionManager.save(user);
 
     await this.ticektService.changeTicketCount(
       user.id,
       1,
       '가입 환영 응모권 1장 지급',
+      transactionManager,
     );
   }
 

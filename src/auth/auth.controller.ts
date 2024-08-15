@@ -7,6 +7,7 @@ import {
   Req,
   Res,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from 'src/users/users.service';
@@ -29,6 +30,9 @@ import { RefreshUser } from 'src/common/decorators/refreshUser.decorator';
 import { AccessUser } from 'src/common/decorators/accessUser.decorator';
 import { TokenResponseDto } from './dto/token.dto';
 import { CheckNameDto } from './dto/check-name.dto';
+import { TransactionInterceptor } from 'src/common/interceptors/transaction.interceptor';
+import { TransactionManager } from 'src/common/decorators/manager.decorator';
+import { EntityManager } from 'typeorm';
 
 @ApiTags('auth')
 @ApiBearerAuth('accessToken')
@@ -104,6 +108,7 @@ export class AuthController {
 
   @Post('/signup')
   @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(TransactionInterceptor)
   @ApiOperation({ summary: '회원가입' })
   @ApiBody({ type: SignupDto })
   @ApiResponse({
@@ -115,13 +120,14 @@ export class AuthController {
     description: '회원가입 실패 시',
   })
   async signup(
+    @TransactionManager() transactionManager: EntityManager,
     @AccessUser() user: JwtPayload,
     @Res() res: Response,
     @Body() signupDto: SignupDto,
   ): Promise<void> {
     try {
       console.log(signupDto);
-      await this.usersService.signup(signupDto, user.id);
+      await this.usersService.signup(transactionManager, signupDto, user.id);
       res.sendStatus(201);
     } catch (err) {
       console.log(err.message);

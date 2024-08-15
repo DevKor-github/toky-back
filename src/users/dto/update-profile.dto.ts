@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, Matches } from 'class-validator';
+import { IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   @ApiProperty({ description: '수정할 이름' })
+  @MaxLength(10, { message: '10자 이내로 입력해주세요' })
   name: string;
 
   @IsOptional()
