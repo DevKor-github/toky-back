@@ -21,14 +21,8 @@ export class SubmitAttendanceCheckQuizResponseDto {
   })
   correct: boolean;
 
-  @ApiProperty({
-    description: '정답에 대한 해설',
-  })
-  explanation: string;
-
-  constructor(attendanceDate: string, correct: boolean, explanation: string) {
+  constructor(attendanceDate: string, correct: boolean) {
     this.attendanceDate = attendanceDate;
     this.correct = correct;
-    this.explanation = explanation;
   }
 }
