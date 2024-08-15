@@ -6,8 +6,8 @@ export class SignupDto {
   @ApiProperty({ description: '전화번호' })
   @IsNotEmpty()
   @IsString()
-  @Matches(/^010-\d{4}-\d{4}$/, {
-    message: '010-XXXX-XXXX 형식으로 입력해주세요.',
+  @Matches(/^010\d{4}\d{4}$/, {
+    message: '특수문자 없이 010으로 시작하는 11자리 전화번호를 입력해주세요.',
   })
   phoneNumber: string;
 

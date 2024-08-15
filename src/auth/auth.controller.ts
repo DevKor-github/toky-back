@@ -12,7 +12,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
-import { CheckPhoneDto } from './dto/check-phone.dto';
 import {
   JwtPayload,
   RefreshTokenPayload,
@@ -128,23 +127,6 @@ export class AuthController {
       console.log(err.message);
       res.status(400).json({ message: err.message });
     }
-  }
-
-  @Get('/check-phone-number')
-  @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ summary: 'phoneNumber 중복 / 형식 확인' })
-  @ApiQuery({ name: 'phoneNumber', description: '전화번호' })
-  @ApiResponse({
-    status: 200,
-    description: '중복 / 형식 이상 없을 시 true',
-    type: Boolean,
-  })
-  async checkPhoneNumber(
-    @Query() checkPhoneDto: CheckPhoneDto,
-  ): Promise<boolean> {
-    return await this.usersService.isValidPhoneNumber(
-      checkPhoneDto.phoneNumber,
-    );
   }
 
   @Get('/check-name')

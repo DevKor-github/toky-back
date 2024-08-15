@@ -22,7 +22,7 @@ export class UserEntity {
   @Column({ nullable: true, length: 20 })
   name?: string;
 
-  @Column({ name: 'phone_no', nullable: true, length: 14 })
+  @Column({ name: 'phone_no', nullable: true, length: 11 })
   phoneNumber?: string;
 
   @Column({

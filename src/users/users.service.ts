@@ -52,14 +52,6 @@ export class UsersService {
       : true;
   }
 
-  async isValidPhoneNumber(phoneNumber: string): Promise<boolean> {
-    return (await this.userRepository.findOne({
-      where: { phoneNumber: phoneNumber },
-    }))
-      ? false
-      : true;
-  }
-
   async signup(signupDto: SignupDto, id: string): Promise<void> {
     const { university, name, phoneNumber } = signupDto;
     const user = await this.findUserById(id);
