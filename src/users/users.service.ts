@@ -11,6 +11,7 @@ import { SignupDto } from 'src/auth/dto/signup.dto';
 import { TicketEntity } from 'src/ticket/entities/ticket.entity';
 import { TicketService } from 'src/ticket/ticket.service';
 import { ProfileDto } from './dto/profile.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -80,19 +81,21 @@ export class UsersService {
     return user.phoneNumber ? true : false;
   }
 
-  async updateName(id: string, name: string): Promise<ProfileDto> {
+  async updateProfile(
+    id: string,
+    requestDto: UpdateProfileDto,
+  ): Promise<ProfileDto> {
     const user = await this.findUserById(id);
 
     if (!user) {
       throw new NotFoundException('user not found!');
     }
 
-    const updated = await this.userRepository.update(id, { name });
+    const updated = await this.userRepository.update(id, requestDto);
     if (updated.affected === 0) {
       throw new InternalServerErrorException('update failed');
     }
 
-    user.name = name;
-    return new ProfileDto(user);
+    return new ProfileDto(await this.findUserById(id));
   }
 }
