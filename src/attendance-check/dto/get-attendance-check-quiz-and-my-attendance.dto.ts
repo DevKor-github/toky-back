@@ -33,8 +33,8 @@ export class GetAttendanceCheckQuizAndMyAttendanceResponseDto {
   constructor(
     attendanceHistory: GetMyAttendanceResponseDto[],
     today: string,
-    quizId: number,
-    question: string,
+    quizId: number | null,
+    question: string | null,
   ) {
     this.attendanceHistory = attendanceHistory;
     this.today = today;

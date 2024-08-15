@@ -61,6 +61,10 @@ export class AttendanceCheckService {
       },
     );
 
+    if (!todayQuiz) {
+      throw new ForbiddenException('No quiz today!');
+    }
+
     // 오늘 퀴즈와 사용자가 제출한 답이 일치하는지 확인
     if (todayQuiz.answer === submitAttendanceCheckQuizRequestDto.answer) {
       attendance.isAnswerCorrect = true;
@@ -115,8 +119,8 @@ export class AttendanceCheckService {
     return new GetAttendanceCheckQuizAndMyAttendanceResponseDto(
       myAttendanceHistory,
       koreaToday,
-      todayQuiz.id,
-      todayQuiz.description,
+      todayQuiz ? todayQuiz.id : null,
+      todayQuiz ? todayQuiz.description : null,
     );
   }
 }
