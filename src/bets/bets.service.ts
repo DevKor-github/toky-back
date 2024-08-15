@@ -11,8 +11,11 @@ import { BetQuestionEntity } from './entities/betQuestion.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ParticipantsResponseDto } from './dto/participantsResponse.dto';
 import { University } from 'src/common/enums/university.enum';
-import { betQuestionResponseDto } from './dto/betQuestionResponse.dto';
-import { MatchMap } from 'src/common/enums/event.enum';
+import {
+  betQuestionResponseDto,
+  Question,
+} from './dto/betQuestionResponse.dto';
+import { Match, MatchMap } from 'src/common/enums/event.enum';
 import { TicketService } from 'src/ticket/ticket.service';
 import { ToTalPredictionDto } from './dto/totalPrediction.dto';
 import { BetShareEntity } from './entities/betShare.entity';
@@ -31,7 +34,7 @@ export class BetsService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async getBetInfo(id: string): Promise<betQuestionResponseDto[]> {
+  async getBetInfo(id: string): Promise<betQuestionResponseDto> {
     const betQuestions = await this.betQuestionRepository.find({
       order: {
         id: 'ASC',
@@ -44,7 +47,15 @@ export class BetsService {
       relations: { question: true },
     });
 
-    const result: betQuestionResponseDto[] = betQuestions.map((betQuestion) => {
+    const result: betQuestionResponseDto = {
+      baseball: [],
+      football: [],
+      basketball: [],
+      rugby: [],
+      icehockey: [],
+    };
+
+    for (const betQuestion of betQuestions) {
       const totalAnswerCount =
         betQuestion.choice1Count +
         betQuestion.choice2Count +
@@ -56,7 +67,7 @@ export class BetsService {
       if (betQuestion.choice.length === 3) {
         percentage.push(betQuestion.choice3Count / totalAnswerCount);
       }
-      const response: betQuestionResponseDto = {
+      const response: Question = {
         questionId: betQuestion.id,
         description: betQuestion.description,
         choices: betQuestion.choice,
@@ -65,8 +76,28 @@ export class BetsService {
         )?.answer,
         percentage,
       };
-      return response;
-    });
+      switch (betQuestion.match) {
+        case Match.Baseball:
+          result.baseball.push(response);
+          break;
+
+        case Match.Football:
+          result.football.push(response);
+          break;
+
+        case Match.Basketball:
+          result.basketball.push(response);
+          break;
+
+        case Match.Rugby:
+          result.rugby.push(response);
+          break;
+
+        case Match.Icehockey:
+          result.icehockey.push(response);
+          break;
+      }
+    }
 
     return result;
   }

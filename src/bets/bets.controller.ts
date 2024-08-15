@@ -32,11 +32,11 @@ export class BetsController {
   @ApiResponse({
     status: 200,
     description: '질문 목록 조회 성공',
-    type: [betQuestionResponseDto],
+    type: betQuestionResponseDto,
   })
   @UseGuards(AuthGuard('jwt'))
   // TODO: cache
-  async getBetQuestions(@Req() req) {
+  async getBetQuestions(@Req() req): Promise<betQuestionResponseDto> {
     try {
       return this.betsService.getBetInfo(req.user.id);
     } catch (err) {
