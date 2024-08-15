@@ -23,9 +23,8 @@ import { TransactionInterceptor } from 'src/common/interceptors/transaction.inte
 import {
   SubmitAttendanceCheckQuizRequestDto,
   SubmitAttendanceCheckQuizResponseDto,
-} from './dto/submit-attendance-check-quiz';
-import { GetAttendanceCheckQuizResponseDto } from './dto/get-attendance-check-quiz.dto';
-import { GetMyAttendanceResponseDto } from './dto/get-my-attendance.dto';
+} from './dto/submit-attendance-check-quiz.dto';
+import { GetAttendanceCheckQuizAndMyAttendanceResponseDto } from './dto/get-attendance-check-quiz-and-my-attendance.dto';
 
 @ApiTags('attendance-check')
 @ApiBearerAuth('accessToken')
@@ -60,26 +59,21 @@ export class AttendanceCheckController {
     );
   }
 
-  @Get('my-attendance')
-  @ApiOperation({ summary: '나의 출석체크 여부 조회' })
-  @ApiResponse({
-    status: 200,
-    description: '나의 출석체크 여부 조회 성공',
-    type: GetMyAttendanceResponseDto,
-    isArray: true,
-  })
-  async getMyAttendance(@Req() req): Promise<GetMyAttendanceResponseDto[]> {
-    return this.attendanceCheckService.getMyAttendance(req.user.id);
-  }
-
   @Get()
-  @ApiOperation({ summary: '오늘의 출석체크 퀴즈 보기' })
+  @ApiOperation({
+    summary: '오늘의 출석체크 퀴즈 보기 & 나의 출석체크 현황 보기',
+  })
   @ApiResponse({
     status: 200,
-    description: '오늘의 출석체크 퀴즈 조회 성공',
-    type: GetAttendanceCheckQuizResponseDto,
+    description:
+      '오늘의 출석체크 퀴즈 조회 성공 & 나의 출석체크 현황 조회 성공',
+    type: GetAttendanceCheckQuizAndMyAttendanceResponseDto,
   })
-  async getAttendanceCheckQuiz(): Promise<GetAttendanceCheckQuizResponseDto> {
-    return this.attendanceCheckService.getAttendanceCheckQuiz();
+  async getAttendanceCheckQuizAndMyAttendance(
+    @Req() req,
+  ): Promise<GetAttendanceCheckQuizAndMyAttendanceResponseDto> {
+    return this.attendanceCheckService.getAttendanceCheckQuizAndMyAttendance(
+      req.user.id,
+    );
   }
 }

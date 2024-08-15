@@ -1,19 +1,17 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AttendanceCheckEntity } from './entities/attendance-check.entity';
 import { EntityManager, Repository } from 'typeorm';
 import {
   SubmitAttendanceCheckQuizRequestDto,
   SubmitAttendanceCheckQuizResponseDto,
-} from './dto/submit-attendance-check-quiz';
+} from './dto/submit-attendance-check-quiz.dto';
 import { AttendanceCheckQuizEntity } from './entities/attendance-check-quiz.entity';
 import { TicketService } from 'src/ticket/ticket.service';
-import { GetAttendanceCheckQuizResponseDto } from './dto/get-attendance-check-quiz.dto';
-import { GetMyAttendanceResponseDto } from './dto/get-my-attendance.dto';
+import {
+  GetAttendanceCheckQuizAndMyAttendanceResponseDto,
+  GetMyAttendanceResponseDto,
+} from './dto/get-attendance-check-quiz-and-my-attendance.dto';
 
 @Injectable()
 export class AttendanceCheckService {
@@ -82,13 +80,15 @@ export class AttendanceCheckService {
     }
     await transactionManager.save(attendance);
     return new SubmitAttendanceCheckQuizResponseDto(
-      userId,
       attendance.attendanceDate,
       attendance.isAnswerCorrect,
+      todayQuiz.explanation,
     );
   }
 
-  async getAttendanceCheckQuiz(): Promise<GetAttendanceCheckQuizResponseDto> {
+  async getAttendanceCheckQuizAndMyAttendance(
+    userId: string,
+  ): Promise<GetAttendanceCheckQuizAndMyAttendanceResponseDto> {
     const offset = 1000 * 60 * 60 * 9; // 9시간 밀리세컨트 값
     const koreaTime = new Date(Date.now() + offset);
     const koreaToday = koreaTime.toISOString().split('T')[0];
@@ -97,24 +97,26 @@ export class AttendanceCheckService {
       where: { attendanceDate: koreaToday },
     });
 
-    if (!todayQuiz) {
-      throw new NotFoundException('No quiz today!');
-    }
+    // 정해진 출섹체크 할 수 있는 날을 초과했을 경우 탭은 들어가지지만 퀴즈는 안나오게
+    // 기획적으로 출석체크 기간이 다 끝났을 때 탭도 클릭이 안되게 해야되면 변경 예정
 
-    return new GetAttendanceCheckQuizResponseDto(
-      koreaToday,
-      todayQuiz.id,
-      todayQuiz.description,
-    );
-  }
+    // if (!todayQuiz) {
+    //   throw new NotFoundException('No quiz today!');
+    // }
 
-  async getMyAttendance(userId: string): Promise<GetMyAttendanceResponseDto[]> {
     const myAttendance = await this.attendanceCheckRepository.find({
       where: { user: { id: userId } },
     });
 
-    return myAttendance.map(
+    const myAttendanceHistory = myAttendance.map(
       (attendance) => new GetMyAttendanceResponseDto(attendance),
+    );
+
+    return new GetAttendanceCheckQuizAndMyAttendanceResponseDto(
+      myAttendanceHistory,
+      koreaToday,
+      todayQuiz.id,
+      todayQuiz.description,
     );
   }
 }

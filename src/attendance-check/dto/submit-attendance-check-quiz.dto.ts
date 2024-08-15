@@ -12,11 +12,6 @@ export class SubmitAttendanceCheckQuizRequestDto {
 
 export class SubmitAttendanceCheckQuizResponseDto {
   @ApiProperty({
-    description: '유저 ID',
-  })
-  userId: string;
-
-  @ApiProperty({
     description: '당일 날짜',
   })
   attendanceDate: string;
@@ -26,9 +21,14 @@ export class SubmitAttendanceCheckQuizResponseDto {
   })
   correct: boolean;
 
-  constructor(userId: string, attendanceDate: string, correct: boolean) {
-    this.userId = userId;
+  @ApiProperty({
+    description: '정답에 대한 해설',
+  })
+  explanation: string;
+
+  constructor(attendanceDate: string, correct: boolean, explanation: string) {
     this.attendanceDate = attendanceDate;
     this.correct = correct;
+    this.explanation = explanation;
   }
 }

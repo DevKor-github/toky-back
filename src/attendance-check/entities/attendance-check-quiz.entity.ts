@@ -13,4 +13,7 @@ export class AttendanceCheckQuizEntity {
 
   @Column()
   answer: string;
+
+  @Column()
+  explanation: string;
 }
