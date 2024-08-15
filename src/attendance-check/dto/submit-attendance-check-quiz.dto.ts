@@ -1,13 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty } from 'class-validator';
 
 export class SubmitAttendanceCheckQuizRequestDto {
   @ApiProperty({
     description: '제출한 답',
   })
-  @IsString()
+  @IsBoolean()
   @IsNotEmpty()
-  answer: string;
+  answer: boolean;
 }
 
 export class SubmitAttendanceCheckQuizResponseDto {

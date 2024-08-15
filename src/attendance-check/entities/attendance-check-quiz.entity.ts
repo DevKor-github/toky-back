@@ -12,7 +12,7 @@ export class AttendanceCheckQuizEntity {
   attendanceDate: string;
 
   @Column()
-  answer: string;
+  answer: boolean;
 
   @Column()
   explanation: string;
