@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { CheersModule } from './cheers/cheers.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { TicketModule } from './ticket/ticket.module';
+import { AttendanceCheckModule } from './attendance-check/attendance-check.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { TicketModule } from './ticket/ticket.module';
     AuthModule,
     CheersModule,
     TicketModule,
+    AttendanceCheckModule,
   ],
 
   controllers: [AppController],

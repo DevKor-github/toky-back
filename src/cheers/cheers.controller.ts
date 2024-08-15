@@ -1,11 +1,18 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CheerDto } from './dto/cheer.dto';
 import { CheersService } from './cheers.service';
 import { CheerRateDto } from './dto/cheerRate.dto';
 
 @ApiTags('cheers')
+@ApiBearerAuth('accessToken')
 @Controller('cheers')
 export class CheersController {
   constructor(private readonly cheerService: CheersService) {}
