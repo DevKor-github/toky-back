@@ -19,6 +19,7 @@ import {
 } from 'src/common/interfaces/auth.interface';
 import { Response } from 'express';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiQuery,
@@ -30,6 +31,8 @@ import { AccessUser } from 'src/common/decorators/accessUser.decorator';
 import { TokenResponseDto } from './dto/token.dto';
 import { CheckNameDto } from './dto/check-name.dto';
 
+@ApiTags('auth')
+@ApiBearerAuth('accessToken')
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
