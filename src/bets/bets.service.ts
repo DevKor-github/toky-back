@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DataSource, In, IsNull, Not, Repository } from 'typeorm';
+import { DataSource, IsNull, Not, Repository } from 'typeorm';
 import { BetAnswerEntity } from './entities/betAnswer.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { CreateBetAnswerDto } from './dto/create-bet-answer.dto';
@@ -173,7 +173,7 @@ export class BetsService {
         await this.ticketService.changeTicketCount(
           userId,
           1,
-          `${MatchMap[`${parseInt(((questionId - 1) / 5).toString())}`]} 종목 ${
+          `${MatchMap[question.match]} 종목 ${
             questionId % 5 === 0 ? 5 : questionId % 5
           }번 예측 참여로 응모권 1개 획득`,
           queryRunner.manager,
@@ -212,8 +212,6 @@ export class BetsService {
   }
 
   async getTotalPredictions(userId: string): Promise<ToTalPredictionDto> {
-    const questionId = [1, 6, 11, 16, 21]; //승부에 대한 예측 question id 5개 설정
-
     let numWinKorea = 0;
     let numWinYonsei = 0;
     let numDraw = 0;
@@ -223,7 +221,7 @@ export class BetsService {
           id: userId,
         },
         question: {
-          id: In(questionId),
+          description: '승리할 팀을 예측해주세요',
         },
       },
     });
