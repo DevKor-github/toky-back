@@ -86,7 +86,11 @@ export class AuthController {
 
   @Post('/refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
-  @ApiOperation({ summary: 'Token 재발급' })
+  @ApiOperation({
+    summary: 'Token 재발급',
+    description:
+      'refreshToken을 이용하여 accessToken, refreshToken을 재발급합니다.',
+  })
   @ApiResponse({
     status: 201,
     description: 'Token 재발급 성공 시',
@@ -100,7 +104,10 @@ export class AuthController {
 
   @Post('/logout')
   @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ summary: '로그아웃' })
+  @ApiOperation({
+    summary: '로그아웃',
+    description: '서버에 저장된 refreshToken을 삭제합니다.',
+  })
   @ApiResponse({ status: 201, description: '로그아웃 성공 시' })
   async logout(@AccessUser() user: JwtPayload): Promise<void> {
     await this.authService.removeRefreshToken(user.id);
@@ -137,7 +144,10 @@ export class AuthController {
 
   @Get('/check-name')
   @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ summary: 'name 중복확인' })
+  @ApiOperation({
+    summary: 'name 중복확인',
+    description: '유저 이름이 중복되었는지 확인합니다.',
+  })
   @ApiQuery({ name: 'name', description: '유저 이름' })
   @ApiResponse({
     status: 200,
@@ -150,7 +160,11 @@ export class AuthController {
 
   @Get('/need-signup')
   @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ summary: '회원가입이 필요한 유저인지 확인' })
+  @ApiOperation({
+    summary: '회원가입이 필요한 유저인지 확인',
+    description:
+      '카카오톡 로그인은 했으나 회원가입은 아직 하지 않은 유저인지 확인합니다.',
+  })
   @ApiResponse({
     status: 200,
     description: '회원가입 이미 했을 시 true',
