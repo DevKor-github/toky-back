@@ -112,6 +112,10 @@ export class AttendanceCheckService {
       where: { user: { id: userId } },
     });
 
+    const myTodayAttendance = await this.attendanceCheckRepository.findOne({
+      where: { user: { id: userId }, attendanceDate: koreaToday },
+    });
+
     const myAttendanceHistory = myAttendance.map(
       (attendance) => new GetMyAttendanceResponseDto(attendance),
     );
@@ -121,6 +125,7 @@ export class AttendanceCheckService {
       koreaToday,
       todayQuiz ? todayQuiz.id : null,
       todayQuiz ? todayQuiz.description : null,
+      myTodayAttendance ? true : false,
     );
   }
 }

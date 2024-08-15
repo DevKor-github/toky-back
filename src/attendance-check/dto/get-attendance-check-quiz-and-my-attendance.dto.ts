@@ -30,15 +30,20 @@ export class GetAttendanceCheckQuizAndMyAttendanceResponseDto {
   @ApiProperty({ description: '출석체크 퀴즈 질문' })
   question: string;
 
+  @ApiProperty({ description: '오늘 출석 여부' })
+  todayAttendance: boolean;
+
   constructor(
     attendanceHistory: GetMyAttendanceResponseDto[],
     today: string,
     quizId: number | null,
     question: string | null,
+    todayAttendance: boolean,
   ) {
     this.attendanceHistory = attendanceHistory;
     this.today = today;
     this.quizId = quizId;
     this.question = question;
+    this.todayAttendance = todayAttendance;
   }
 }
