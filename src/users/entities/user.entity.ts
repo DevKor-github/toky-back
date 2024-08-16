@@ -19,10 +19,10 @@ export class UserEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column({ nullable: true, length: 20 })
+  @Column({ nullable: true, length: 10 })
   name?: string;
 
-  @Column({ name: 'phone_no', nullable: true, length: 12 })
+  @Column({ name: 'phone_no', nullable: true, length: 11 })
   phoneNumber?: string;
 
   @Column({
@@ -38,6 +38,9 @@ export class UserEntity {
     default: null,
   })
   lastShareRank?: Date;
+
+  @Column('varchar')
+  inviteCode: string;
 
   @OneToMany(() => BetAnswerEntity, (bet) => bet.user) // one to many BetDetail
   bets: BetAnswerEntity[];

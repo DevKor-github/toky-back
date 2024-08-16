@@ -13,7 +13,4 @@ export class AttendanceCheckQuizEntity {
 
   @Column()
   answer: boolean;
-
-  @Column()
-  explanation: string;
 }
