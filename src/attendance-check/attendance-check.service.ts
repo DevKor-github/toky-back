@@ -86,7 +86,6 @@ export class AttendanceCheckService {
     return new SubmitAttendanceCheckQuizResponseDto(
       attendance.attendanceDate,
       attendance.isAnswerCorrect,
-      todayQuiz.explanation,
     );
   }
 
