@@ -18,15 +18,16 @@ export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(TicketEntity)
-    private readonly ticketRepository: Repository<TicketEntity>,
     private readonly ticektService: TicketService,
   ) {}
 
   async findOrCreateById(id: string): Promise<UserInfoDto> {
     let user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      user = this.userRepository.create({ id });
+      user = this.userRepository.create({
+        id,
+        inviteCode: this.generateRandomString(),
+      });
       this.userRepository.save(user);
     }
     return new UserInfoDto(user);
@@ -73,7 +74,6 @@ export class UsersService {
     user.phoneNumber = phoneNumber;
     user.university = university;
     user.ticket = ticketEntity;
-    user.inviteCode = this.generateRandomString();
     await transactionManager.save(user);
 
     if (signupDto.inviteCode) {
@@ -133,11 +133,13 @@ export class UsersService {
     const characters =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
+    const timestamp = new Date().getTime().toString();
     for (let i = 0; i < 8; i++) {
       result += characters.charAt(
         Math.floor(Math.random() * characters.length),
       );
     }
+    result += timestamp;
     return result;
   }
 }

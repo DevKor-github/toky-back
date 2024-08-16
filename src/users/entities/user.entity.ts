@@ -39,8 +39,8 @@ export class UserEntity {
   })
   lastShareRank?: Date;
 
-  @Column({ nullable: true, length: 8 })
-  inviteCode?: string;
+  @Column('varchar')
+  inviteCode: string;
 
   @OneToMany(() => BetAnswerEntity, (bet) => bet.user) // one to many BetDetail
   bets: BetAnswerEntity[];

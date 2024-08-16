@@ -122,24 +122,13 @@ export class AuthController {
     status: 201,
     description: '회원가입 성공 시',
   })
-  @ApiResponse({
-    status: 400,
-    description: '회원가입 실패 시',
-  })
   async signup(
     @TransactionManager() transactionManager: EntityManager,
     @AccessUser() user: JwtPayload,
-    @Res() res: Response,
     @Body() signupDto: SignupDto,
   ): Promise<void> {
-    try {
-      console.log(signupDto);
-      await this.usersService.signup(transactionManager, signupDto, user.id);
-      res.sendStatus(201);
-    } catch (err) {
-      console.log(err.message);
-      res.status(400).json({ message: err.message });
-    }
+    console.log(signupDto);
+    await this.usersService.signup(transactionManager, signupDto, user.id);
   }
 
   @Get('/check-name')
