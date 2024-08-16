@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Patch,
   Post,
   Query,
   Req,
@@ -17,7 +16,10 @@ import { PhoneDto } from './dto/phone.dto';
 import { JwtPayload } from 'src/common/interfaces/JwtPayload';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { Response } from 'express';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('auth')
+@ApiBearerAuth('accessToken')
 @Controller('auth')
 export class AuthController {
   constructor(

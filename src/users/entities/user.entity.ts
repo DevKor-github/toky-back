@@ -1,3 +1,4 @@
+import { AttendanceCheckEntity } from 'src/attendance-check/entities/attendance-check.entity';
 import { BetAnswerEntity } from 'src/bets/entities/betAnswer.entity';
 import { BetShareEntity } from 'src/bets/entities/betShare.entity';
 import { University } from 'src/common/enums/university.enum';
@@ -55,4 +56,10 @@ export class UserEntity {
   @OneToOne(() => BetShareEntity, { cascade: ['update'] }) // one to many point
   @JoinColumn({ name: 'bet_share_id' })
   betShare: BetShareEntity;
+
+  @OneToMany(
+    () => AttendanceCheckEntity,
+    (attendanceCheck) => attendanceCheck.user,
+  )
+  attendanceChecks: AttendanceCheckEntity[];
 }

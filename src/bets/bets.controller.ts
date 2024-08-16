@@ -8,7 +8,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { BetsService } from './bets.service';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import {
   CreateBetAnswerDto,
   CreateBetAnswerResponseDto,
@@ -19,6 +25,7 @@ import { ToTalPredictionDto } from './dto/totalPrediction.dto';
 import { ParticipantsResponseDto } from './dto/participantsResponse.dto';
 
 @ApiTags('bets')
+@ApiBearerAuth('accessToken')
 @Controller('bets')
 export class BetsController {
   constructor(private readonly betsService: BetsService) {}
