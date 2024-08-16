@@ -29,6 +29,7 @@ import { TransactionManager } from 'src/common/decorators/manager.decorator';
 import { EntityManager } from 'typeorm';
 import { AccessUser } from 'src/common/decorators/accessUser.decorator';
 import { JwtPayload } from 'src/common/interfaces/auth.interface';
+import { GetRankDto } from './dto/get-Rank.dto';
 
 @ApiTags('bets')
 @ApiBearerAuth('accessToken')
@@ -177,5 +178,20 @@ export class BetsController {
     @Body() inputAnswerDto: InputAnswerDto,
   ): Promise<void> {
     return this.betsService.inputAnswer(inputAnswerDto, transactionManager);
+  }
+
+  @Get('/rank/my')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: '내 랭킹 조회하기',
+    description: '내 랭킹을 조회합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '내 랭킹 조회 성공',
+    type: GetRankDto,
+  })
+  async getMyRank(@AccessUser() user: JwtPayload) {
+    return this.betsService.getRankById(user.id);
   }
 }

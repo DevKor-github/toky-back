@@ -3,7 +3,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DataSource, EntityManager, IsNull, Not, Repository } from 'typeorm';
+import {
+  DataSource,
+  EntityManager,
+  IsNull,
+  MoreThan,
+  Not,
+  Repository,
+} from 'typeorm';
 import { BetAnswerEntity } from './entities/betAnswer.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { CreateBetAnswerDto } from './dto/create-bet-answer.dto';
@@ -20,6 +27,8 @@ import { TicketService } from 'src/ticket/ticket.service';
 import { ToTalPredictionDto } from './dto/totalPrediction.dto';
 import { BetShareEntity } from './entities/betShare.entity';
 import { InputAnswerDto } from './dto/input-answer.dto';
+import { AnswerCountEntity } from './entities/answerCount.entity';
+import { GetRankDto } from './dto/get-Rank.dto';
 @Injectable()
 export class BetsService {
   constructor(
@@ -31,6 +40,8 @@ export class BetsService {
     private readonly betShareRepository: Repository<BetShareEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(AnswerCountEntity)
+    private readonly answerCountRepository: Repository<AnswerCountEntity>,
     private readonly ticketService: TicketService,
     private readonly dataSource: DataSource,
   ) {}
@@ -338,5 +349,35 @@ export class BetsService {
         );
       }
     }
+  }
+
+  async getRankById(userId: string) {
+    const answerCount = await this.answerCountRepository.findOne({
+      where: {
+        user: { id: userId },
+      },
+      relations: { user: true },
+    });
+    const count = await this.answerCountRepository.count({
+      where: {
+        count: MoreThan(answerCount.count),
+      },
+    });
+
+    //Todo - caching
+    const questionCount = await this.betQuestionRepository.count({
+      where: {
+        realAnswer: Not(-1),
+      },
+    });
+
+    const result: GetRankDto = {
+      rank: count + 1,
+      correctAnswerPercentage: (answerCount.count / questionCount) * 100,
+      name: answerCount.user.name,
+      university: answerCount.user.university,
+    };
+
+    return result;
   }
 }
