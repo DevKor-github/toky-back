@@ -100,13 +100,6 @@ export class AttendanceCheckService {
       where: { attendanceDate: koreaToday },
     });
 
-    // 정해진 출섹체크 할 수 있는 날을 초과했을 경우 탭은 들어가지지만 퀴즈는 안나오게
-    // 기획적으로 출석체크 기간이 다 끝났을 때 탭도 클릭이 안되게 해야되면 변경 예정
-
-    // if (!todayQuiz) {
-    //   throw new NotFoundException('No quiz today!');
-    // }
-
     const myAttendance = await this.attendanceCheckRepository.find({
       where: { user: { id: userId } },
     });
