@@ -38,7 +38,7 @@ export class BetsService {
   async getBetInfo(id: string): Promise<betQuestionResponseDto> {
     const betQuestions = await this.betQuestionRepository.find({
       order: {
-        id: 'ASC',
+        index: 'ASC',
       },
     });
     const betAnswers = await this.betAnswerRepository.find({
@@ -301,7 +301,7 @@ export class BetsService {
 
     const questions = await transactionManager.find(BetQuestionEntity, {
       where: { match },
-      order: { id: 'ASC' },
+      order: { index: 'ASC' },
     });
 
     for (let i = 0; i < 5; i++) {
