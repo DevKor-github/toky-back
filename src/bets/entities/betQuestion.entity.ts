@@ -10,6 +10,9 @@ export class BetQuestionEntity {
   match: Match;
 
   @Column()
+  index: number;
+
+  @Column()
   description: string;
 
   @Column({ type: 'text', array: true })

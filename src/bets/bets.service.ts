@@ -175,7 +175,7 @@ export class BetsService {
           userId,
           1,
           `${MatchMap[question.match]} 종목 ${
-            questionId % 5 === 0 ? 5 : questionId % 5
+            question.index
           }번 예측 참여로 응모권 1개 획득`,
           queryRunner.manager,
         );
@@ -222,7 +222,7 @@ export class BetsService {
           id: userId,
         },
         question: {
-          description: '승리할 팀을 예측해주세요',
+          index: 1,
         },
       },
     });
