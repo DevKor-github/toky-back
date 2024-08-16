@@ -311,6 +311,32 @@ export class BetsService {
         throw new BadRequestException(`Question #${i + 1} Answer is not valid`);
       questions[i].realAnswer = answers[i];
       await transactionManager.save(questions[i]);
+
+      const correctAnswers = await transactionManager.find(BetAnswerEntity, {
+        where: {
+          question: {
+            id: questions[i].id,
+          },
+          answer: answers[i],
+        },
+        relations: {
+          user: {
+            answerCount: true,
+          },
+        },
+      });
+      for (const correctAnswer of correctAnswers) {
+        correctAnswer.user.answerCount.count += 1;
+        await transactionManager.save(correctAnswer.user.answerCount);
+        await this.ticketService.changeTicketCount(
+          correctAnswer.user.id,
+          5,
+          `${MatchMap[questions[i].match]} 종목 ${
+            questions[i].index
+          }번 예측 성공으로 응모권 5개 획득`,
+          transactionManager,
+        );
+      }
     }
   }
 }
