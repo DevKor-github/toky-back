@@ -1,93 +1,145 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { UserInfoDto } from 'src/users/dto/user-info.dto';
 import { SignupDto } from 'src/auth/dto/signup.dto';
-import { PhoneEntity } from 'src/auth/entities/phone.entity';
 import { TicketEntity } from 'src/ticket/entities/ticket.entity';
 import { TicketService } from 'src/ticket/ticket.service';
+import { ProfileDto } from './dto/profile.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(PhoneEntity)
-    private readonly phoneRepository: Repository<PhoneEntity>,
-    @InjectRepository(TicketEntity)
-    private readonly ticketRepository: Repository<TicketEntity>,
     private readonly ticektService: TicketService,
   ) {}
 
-  async findOrCreateById(id: string) {
+  async findOrCreateById(id: string): Promise<UserInfoDto> {
     let user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      user = this.userRepository.create({ id });
+      user = this.userRepository.create({
+        id,
+        inviteCode: this.generateRandomString(),
+      });
       this.userRepository.save(user);
     }
-    const userInfoDto: UserInfoDto = new UserInfoDto(user);
-    return userInfoDto;
+    return new UserInfoDto(user);
   }
 
-  async findUserById(id: string) {
+  async findUserById(id: string): Promise<UserEntity> {
     return await this.userRepository.findOne({
       where: { id },
       relations: ['ticket'],
     });
   }
 
-  async isValidName(name: string) {
+  async getUserProfile(id: string): Promise<ProfileDto> {
+    const user = await this.findUserById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return new ProfileDto(user);
+  }
+
+  async isValidName(name: string): Promise<boolean> {
     return (await this.userRepository.findOne({ where: { name } }))
       ? false
       : true;
   }
-  async isValidPhoneNumber(phoneNumber: string) {
-    return (await this.userRepository.findOne({
-      where: { phoneNumber },
-    }))
-      ? false
-      : true;
-  }
 
-  async signup(signupDto: SignupDto, id: string) {
+  async signup(
+    transactionManager: EntityManager,
+    signupDto: SignupDto,
+    id: string,
+  ): Promise<void> {
     const { university, name, phoneNumber } = signupDto;
-    const user = await this.findUserById(id);
-
-    const phone = await this.phoneRepository.findOne({
-      where: { user: { id }, isValid: true },
+    const user = await transactionManager.findOne(UserEntity, {
+      where: { id },
     });
-    if (!phone) {
-      // TODO: 에러
-      throw new Error('휴대폰 인증이 되어있지 않습니다.');
-    }
 
-    const ticketEntity = this.ticketRepository.create({
+    const ticketEntity = transactionManager.create(TicketEntity, {
       user,
       count: 0,
     });
-    await this.ticketRepository.save(ticketEntity);
+    await transactionManager.save(ticketEntity);
 
     user.name = name;
     user.phoneNumber = phoneNumber;
     user.university = university;
     user.ticket = ticketEntity;
-    await this.userRepository.save(user);
+    await transactionManager.save(user);
+
+    if (signupDto.inviteCode) {
+      const inviteUser = await transactionManager.findOne(UserEntity, {
+        where: { inviteCode: signupDto.inviteCode },
+      });
+
+      if (inviteUser) {
+        await this.ticektService.changeTicketCount(
+          inviteUser.id,
+          1,
+          '친구가 초대 링크로 가입하여 1장 지급',
+          transactionManager,
+        );
+
+        await this.ticektService.changeTicketCount(
+          user.id,
+          1,
+          '초대 링크로 가입하여 1장 지급',
+          transactionManager,
+        );
+      }
+    }
 
     await this.ticektService.changeTicketCount(
       user.id,
       1,
       '가입 환영 응모권 1장 지급',
+      transactionManager,
     );
   }
-  async validateUser(id: string) {
+
+  async validateUser(id: string): Promise<boolean> {
     const user = await this.userRepository.findOne({ where: { id } });
     return user.phoneNumber ? true : false;
   }
 
-  async updateName(id: string, name: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
-    user.name = name;
-    await this.userRepository.save(user);
+  async updateProfile(
+    id: string,
+    requestDto: UpdateProfileDto,
+  ): Promise<ProfileDto> {
+    const user = await this.findUserById(id);
+
+    if (!user) {
+      throw new NotFoundException('user not found!');
+    }
+
+    const updated = await this.userRepository.update(id, requestDto);
+    if (updated.affected === 0) {
+      throw new InternalServerErrorException('update failed');
+    }
+
+    return new ProfileDto(await this.findUserById(id));
+  }
+
+  private generateRandomString(): string {
+    const characters =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    const timestamp = new Date().getTime().toString();
+    for (let i = 0; i < 8; i++) {
+      result += characters.charAt(
+        Math.floor(Math.random() * characters.length),
+      );
+    }
+    result += timestamp;
+    return result;
   }
 }

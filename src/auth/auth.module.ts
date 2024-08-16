@@ -8,12 +8,11 @@ import { KakaoStrategy } from './strategy/kakao.strategy';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { JwtStrategy as RefreshStrategy } from './strategy/refreshToken.strategy';
 import { TokenEntity } from './entities/token.entity';
-import { PhoneEntity } from './entities/phone.entity';
 import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserEntity, TokenEntity, PhoneEntity]),
+    TypeOrmModule.forFeature([UserEntity, TokenEntity]),
     JwtModule.register({}),
     UsersModule,
   ],
