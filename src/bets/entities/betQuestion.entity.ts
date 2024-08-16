@@ -24,6 +24,9 @@ export class BetQuestionEntity {
   @Column({ type: 'int', default: 0, nullable: true })
   choice3Count: number;
 
+  @Column({ type: 'int', default: -1 })
+  realAnswer: number;
+
   @OneToMany(() => BetAnswerEntity, (answer) => answer.question)
   betAnswers: BetAnswerEntity[];
   //one to many bet pick

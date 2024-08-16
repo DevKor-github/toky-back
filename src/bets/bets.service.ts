@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DataSource, IsNull, Not, Repository } from 'typeorm';
+import { DataSource, EntityManager, IsNull, Not, Repository } from 'typeorm';
 import { BetAnswerEntity } from './entities/betAnswer.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { CreateBetAnswerDto } from './dto/create-bet-answer.dto';
@@ -19,6 +19,7 @@ import { Match, MatchMap } from 'src/common/enums/event.enum';
 import { TicketService } from 'src/ticket/ticket.service';
 import { ToTalPredictionDto } from './dto/totalPrediction.dto';
 import { BetShareEntity } from './entities/betShare.entity';
+import { InputAnswerDto } from './dto/input-answer.dto';
 @Injectable()
 export class BetsService {
   constructor(
@@ -287,5 +288,29 @@ export class BetsService {
     };
 
     return result;
+  }
+
+  async inputAnswer(
+    inputAnswerDto: InputAnswerDto,
+    transactionManager: EntityManager,
+  ): Promise<void> {
+    const { match, answers, adminCode } = inputAnswerDto;
+    if (adminCode !== process.env.ADMINCODE) {
+      throw new BadRequestException('Only admin can input answer!');
+    }
+
+    const questions = await transactionManager.find(BetQuestionEntity, {
+      where: { match },
+      order: { id: 'ASC' },
+    });
+
+    for (let i = 0; i < 5; i++) {
+      if (questions[i].realAnswer !== -1)
+        throw new BadRequestException('Already answers inputed!');
+      if (answers[i] >= questions[i].choice.length || answers[i] < 0)
+        throw new BadRequestException(`Question #${i + 1} Answer is not valid`);
+      questions[i].realAnswer = answers[i];
+      await transactionManager.save(questions[i]);
+    }
   }
 }

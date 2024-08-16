@@ -6,6 +6,7 @@ import {
   Req,
   Res,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { BetsService } from './bets.service';
 import {
@@ -23,6 +24,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { betQuestionResponseDto } from './dto/betQuestionResponse.dto';
 import { ToTalPredictionDto } from './dto/totalPrediction.dto';
 import { ParticipantsResponseDto } from './dto/participantsResponse.dto';
+import { InputAnswerDto } from './dto/input-answer.dto';
+import { TransactionInterceptor } from 'src/common/interceptors/transaction.interceptor';
+import { TransactionManager } from 'src/common/decorators/manager.decorator';
+import { EntityManager } from 'typeorm';
 
 @ApiTags('bets')
 @ApiBearerAuth('accessToken')
@@ -149,5 +154,25 @@ export class BetsController {
   })
   async getParticipants() {
     return this.betsService.getBetParticipants();
+  }
+
+  @Post('/answer')
+  @UseInterceptors(TransactionInterceptor)
+  @ApiOperation({
+    summary: '실제 정답 입력',
+    description: '베팅 문제들의 실제 정답을 입력합니다',
+  })
+  @ApiBody({
+    type: InputAnswerDto,
+  })
+  @ApiResponse({
+    status: 201,
+    description: '정답 입력 성공',
+  })
+  async inputAnswer(
+    @TransactionManager() transactionManager: EntityManager,
+    @Body() inputAnswerDto: InputAnswerDto,
+  ): Promise<void> {
+    return this.betsService.inputAnswer(inputAnswerDto, transactionManager);
   }
 }
