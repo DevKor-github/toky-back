@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Post,
-  Req,
   Res,
   UseGuards,
   UseInterceptors,
@@ -28,6 +27,8 @@ import { InputAnswerDto } from './dto/input-answer.dto';
 import { TransactionInterceptor } from 'src/common/interceptors/transaction.interceptor';
 import { TransactionManager } from 'src/common/decorators/manager.decorator';
 import { EntityManager } from 'typeorm';
+import { AccessUser } from 'src/common/decorators/accessUser.decorator';
+import { JwtPayload } from 'src/common/interfaces/auth.interface';
 
 @ApiTags('bets')
 @ApiBearerAuth('accessToken')
@@ -48,9 +49,11 @@ export class BetsController {
   })
   @UseGuards(AuthGuard('jwt'))
   // TODO: cache
-  async getBetQuestions(@Req() req): Promise<betQuestionResponseDto> {
+  async getBetQuestions(
+    @AccessUser() user: JwtPayload,
+  ): Promise<betQuestionResponseDto> {
     try {
-      return this.betsService.getBetInfo(req.user.id);
+      return this.betsService.getBetInfo(user.id);
     } catch (err) {
       console.log(err);
     }
@@ -77,7 +80,7 @@ export class BetsController {
     type: CreateBetAnswerResponseDto,
   })
   async createBetAnswer(
-    @Req() req,
+    @AccessUser() user: JwtPayload,
     @Body() createBetAnswerDto: CreateBetAnswerDto,
     @Res() res,
   ) {
@@ -100,7 +103,7 @@ export class BetsController {
       // }
 
       const result = await this.betsService.createOrUpdateAnswer(
-        req.user.id,
+        user.id,
         createBetAnswerDto,
       );
       res.status(result.status).json({ percentage: result.percentage });
@@ -122,8 +125,8 @@ export class BetsController {
     description: '종합 우승스코어 조회 성공',
     type: ToTalPredictionDto,
   })
-  async getTotalPredictions(@Req() req) {
-    return this.betsService.getTotalPredictions(req.user.id);
+  async getTotalPredictions(@AccessUser() user: JwtPayload) {
+    return this.betsService.getTotalPredictions(user.id);
   }
 
   @Post('/share')
@@ -138,8 +141,8 @@ export class BetsController {
     description: '예측 공유 응모권 획득 성공, 획득 후 응모권 갯수 반환',
     type: Number,
   })
-  async getSharePredictionTicket(@Req() req) {
-    return this.betsService.getSharePredictionTicket(req.user.id);
+  async getSharePredictionTicket(@AccessUser() user: JwtPayload) {
+    return this.betsService.getSharePredictionTicket(user.id);
   }
 
   @Get('/participants')

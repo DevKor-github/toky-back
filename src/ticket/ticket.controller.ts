@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { TicketService } from './ticket.service';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -23,6 +15,8 @@ import { DrawGiftListDto } from './dto/draw-gift.dto';
 import { GetHistoryDto } from './dto/get-history.dto';
 import { GetGiftDto } from './dto/get-gift.dto';
 import { GetDrawCountDto } from './dto/get-drawCount.dto';
+import { AccessUser } from 'src/common/decorators/accessUser.decorator';
+import { JwtPayload } from 'src/common/interfaces/auth.interface';
 
 @ApiTags('ticket')
 @ApiBearerAuth('accessToken')
@@ -45,8 +39,8 @@ export class TicketController {
     description: '응모권 개수 조회 성공',
     type: Number,
   })
-  async getMyTicketCount(@Req() req): Promise<number> {
-    return this.ticketService.getTicketCount(req.user.id);
+  async getMyTicketCount(@AccessUser() user: JwtPayload): Promise<number> {
+    return this.ticketService.getTicketCount(user.id);
   }
 
   @Get('/history')
@@ -65,8 +59,11 @@ export class TicketController {
     description: '내역 조회 성공',
     type: [GetHistoryDto],
   })
-  async getMyTicketHistory(@Req() req, @Query('page') page?: number) {
-    return this.historyService.getHistory(req.user.id, page);
+  async getMyTicketHistory(
+    @AccessUser() user: JwtPayload,
+    @Query('page') page?: number,
+  ) {
+    return this.historyService.getHistory(user.id, page);
   }
 
   @Get('/gift')
@@ -98,8 +95,11 @@ export class TicketController {
     status: 201,
     description: '경품 응모 성공',
   })
-  async drawGift(@Req() req, @Body() draws: DrawGiftListDto) {
-    return this.giftService.drawGift(req.user.id, draws.draws);
+  async drawGift(
+    @AccessUser() user: JwtPayload,
+    @Body() draws: DrawGiftListDto,
+  ) {
+    return this.giftService.drawGift(user.id, draws.draws);
   }
 
   @Get('/draw')
@@ -114,7 +114,7 @@ export class TicketController {
     description: '경품 응모참여인원 조회 성공',
     type: GetDrawCountDto,
   })
-  async getDrawCount(@Req() req) {
-    return this.giftService.getDrawCount(req.user.id);
+  async getDrawCount(@AccessUser() user: JwtPayload) {
+    return this.giftService.getDrawCount(user.id);
   }
 }
