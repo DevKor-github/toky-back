@@ -12,6 +12,7 @@ import { TicketEntity } from 'src/ticket/entities/ticket.entity';
 import { TicketService } from 'src/ticket/ticket.service';
 import { ProfileDto } from './dto/profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { AnswerCountEntity } from 'src/bets/entities/answerCount.entity';
 
 @Injectable()
 export class UsersService {
@@ -70,10 +71,16 @@ export class UsersService {
     });
     await transactionManager.save(ticketEntity);
 
+    const answerCountEntity = transactionManager.create(AnswerCountEntity, {
+      user,
+    });
+    await transactionManager.save(answerCountEntity);
+
     user.name = name;
     user.phoneNumber = phoneNumber;
     user.university = university;
     user.ticket = ticketEntity;
+    user.answerCount = answerCountEntity;
     await transactionManager.save(user);
 
     if (signupDto.inviteCode) {
