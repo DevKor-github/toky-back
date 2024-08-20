@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Post,
-  Req,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -25,6 +24,8 @@ import {
   SubmitAttendanceCheckQuizResponseDto,
 } from './dto/submit-attendance-check-quiz.dto';
 import { GetAttendanceCheckQuizAndMyAttendanceResponseDto } from './dto/get-attendance-check-quiz-and-my-attendance.dto';
+import { AccessUser } from 'src/common/decorators/accessUser.decorator';
+import { JwtPayload } from 'src/common/interfaces/auth.interface';
 
 @ApiTags('attendance-check')
 @ApiBearerAuth('accessToken')
@@ -48,13 +49,13 @@ export class AttendanceCheckController {
   @UseInterceptors(TransactionInterceptor)
   async submitAttendanceCheckQuiz(
     @TransactionManager() transactionManager: EntityManager,
-    @Req() req,
+    @AccessUser() user: JwtPayload,
     @Body()
     submitAttendanceCheckQuizRequestDto: SubmitAttendanceCheckQuizRequestDto,
   ): Promise<SubmitAttendanceCheckQuizResponseDto> {
     return this.attendanceCheckService.submitAttendanceCheckQuiz(
       transactionManager,
-      req.user.id,
+      user.id,
       submitAttendanceCheckQuizRequestDto,
     );
   }
@@ -70,10 +71,10 @@ export class AttendanceCheckController {
     type: GetAttendanceCheckQuizAndMyAttendanceResponseDto,
   })
   async getAttendanceCheckQuizAndMyAttendance(
-    @Req() req,
+    @AccessUser() user: JwtPayload,
   ): Promise<GetAttendanceCheckQuizAndMyAttendanceResponseDto> {
     return this.attendanceCheckService.getAttendanceCheckQuizAndMyAttendance(
-      req.user.id,
+      user.id,
     );
   }
 }

@@ -60,17 +60,15 @@ export class AuthController {
     const token = await this.authService.getToken(userInfoDto.payload);
     res.cookie('access-token', token.accessToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
-      sameSite: 'none',
-      secure: true,
+      // sameSite: 'none',
+      // secure: true,
       httpOnly: false,
-      domain: 'toky.devkor.club',
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
-      sameSite: 'none',
-      secure: true,
+      // sameSite: 'none',
+      // secure: true,
       httpOnly: false,
-      domain: 'toky.devkor.club',
     });
     await this.authService.saveRefreshToken(
       token.refreshToken,
@@ -80,8 +78,6 @@ export class AuthController {
       res.redirect(process.env.DOMAIN + '/signup');
       return;
     }
-
-    res.redirect(process.env.DOMAIN + '/bets');
   }
 
   @Post('/refresh')
