@@ -83,9 +83,11 @@ export class BetsService {
         questionId: betQuestion.id,
         description: betQuestion.description,
         choices: betQuestion.choice,
-        answer: betAnswers.find(
-          (answer) => answer.question.id === betQuestion.id,
-        )?.answer,
+        myAnswer:
+          betAnswers.find((answer) => answer.question.id === betQuestion.id)
+            ?.answer ?? null,
+        realAnswer:
+          betQuestion.realAnswer !== -1 ? betQuestion.realAnswer : null,
         percentage,
       };
       switch (betQuestion.match) {
@@ -351,6 +353,48 @@ export class BetsService {
     }
   }
 
+  async getRankList(page: number) {
+    const take = 10;
+    const answers = await this.answerCountRepository.find({
+      relations: {
+        user: true,
+      },
+      order: {
+        count: 'DESC',
+        id: 'ASC',
+      },
+      take: take,
+      skip: (page - 1) * take,
+    });
+
+    if (answers.length === 0) return [];
+
+    const topRank = (await this.getRankById(answers[0].user.id)).rank;
+
+    const questionCount = await this.getAnswerdQuestionCount();
+
+    const result = answers.map((answer, idx, array) => {
+      let rank = (page - 1) * take + idx + 1;
+      let i = 1;
+      while (idx - i >= 0 && array[idx - i].count === answer.count) {
+        rank--;
+        i++;
+      }
+      if (idx - i <= 0 && array[0].count === answer.count) rank = topRank;
+
+      const resultDto: GetRankDto = {
+        rank: rank,
+        correctAnswerPercentage: (answer.count / questionCount) * 100,
+        name: answer.user.name,
+        university: answer.user.university,
+      };
+
+      return resultDto;
+    });
+
+    return result;
+  }
+
   async getRankById(userId: string) {
     const answerCount = await this.answerCountRepository.findOne({
       where: {
@@ -364,12 +408,7 @@ export class BetsService {
       },
     });
 
-    //Todo - caching
-    const questionCount = await this.betQuestionRepository.count({
-      where: {
-        realAnswer: Not(-1),
-      },
-    });
+    const questionCount = await this.getAnswerdQuestionCount();
 
     const result: GetRankDto = {
       rank: count + 1,
@@ -379,5 +418,14 @@ export class BetsService {
     };
 
     return result;
+  }
+
+  async getAnswerdQuestionCount(): Promise<number> {
+    //Todo - caching
+    return await this.betQuestionRepository.count({
+      where: {
+        realAnswer: Not(-1),
+      },
+    });
   }
 }
