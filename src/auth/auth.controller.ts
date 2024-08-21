@@ -63,13 +63,16 @@ export class AuthController {
       sameSite: 'lax',
       secure: false,
       httpOnly: false,
+      domain: new URL(process.env.DOMAIN).hostname,
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
       sameSite: 'lax',
       secure: false,
       httpOnly: false,
+      domain: new URL(process.env.DOMAIN).hostname,
     });
+
     await this.authService.saveRefreshToken(
       token.refreshToken,
       userInfoDto.payload.id,
