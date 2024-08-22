@@ -55,10 +55,11 @@ export class AuthController {
   @UseGuards(AuthGuard('kakao'))
   @ApiOperation({ summary: '카카오 로그인 후 redirect 되는 url' })
   async kakaoLoginRedirect(@Req() req, @Res() res: Response): Promise<void> {
-    const referer = req.headers.referer;
+    const referer = req.headers.referer ?? '';
     const isLocal = referer.includes('localhost');
     const isDev = process.env.NODE_ENV === 'development';
     const userInfoDto = await this.usersService.findOrCreateById(req.user.id);
+    console.log(isLocal);
 
     const token = await this.authService.getToken(userInfoDto.payload);
     res.cookie('access-token', token.accessToken, {
