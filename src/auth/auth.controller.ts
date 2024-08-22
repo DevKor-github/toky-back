@@ -60,21 +60,21 @@ export class AuthController {
     const token = await this.authService.getToken(userInfoDto.payload);
     res.cookie('access-token', token.accessToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
-      // sameSite: 'none',
+      sameSite: 'none',
       // secure: true,
       // httpOnly: false,
-      secure: true, // 쿠키가 HTTPS 프로토콜을 사용하는 경우에만 전송되도록 제한
+      secure: false, // 쿠키가 HTTPS 프로토콜을 사용하는 경우에만 전송되도록 제한
       httpOnly: true,
-      // domain: 'dev.toky.devkor.club',
+      domain: 'dev.toky.devkor.club',
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
-      // sameSite: 'none',
+      sameSite: 'none',
       // secure: true,
       // httpOnly: false,
-      secure: true, // 쿠키가 HTTPS 프로토콜을 사용하는 경우에만 전송되도록 제한
+      secure: false, // 쿠키가 HTTPS 프로토콜을 사용하는 경우에만 전송되도록 제한
       httpOnly: true,
-      // domain: 'dev.toky.devkor.club',
+      domain: 'dev.toky.devkor.club',
     });
 
     await this.authService.saveRefreshToken(
