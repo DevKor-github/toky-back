@@ -77,7 +77,6 @@ export class AuthController {
     );
     if (!userInfoDto.hasPhone) {
       res.redirect(process.env.DOMAIN + '/signup');
-      res.send();
       return;
     }
     res.redirect(process.env.DOMAIN);
