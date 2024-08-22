@@ -60,11 +60,17 @@ export class AuthController {
     const token = await this.authService.getToken(userInfoDto.payload);
     res.cookie('access-token', token.accessToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
+      sameSite: 'none',
+      secure: true,
       httpOnly: false,
+      domain: 'dev.toky.devkor.club',
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
+      sameSite: 'none',
+      secure: true,
       httpOnly: false,
+      domain: 'dev.toky.devkor.club',
     });
 
     await this.authService.saveRefreshToken(
