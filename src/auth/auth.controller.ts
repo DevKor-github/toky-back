@@ -62,14 +62,14 @@ export class AuthController {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
       httpOnly: true, // 클라이언트에서 쿠키에 접근하지 못하게 설정
       secure: false, // 개발 환경에서는 https가 아니더라도 쿠키 설정 허용
-      sameSite: 'Lax', // 또는 'None' 설정으로 크로스 도메인 문제 해결
+      sameSite: 'lax', // 또는 'None' 설정으로 크로스 도메인 문제 해결
       // domain: 'dev.toky.devkor.club',
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
       httpOnly: true, // 클라이언트에서 쿠키에 접근하지 못하게 설정
       secure: false, // 개발 환경에서는 https가 아니더라도 쿠키 설정 허용
-      sameSite: 'Lax', // 또는 'None' 설정으로 크로스 도메인 문제 해결
+      sameSite: 'lax', // 또는 'None' 설정으로 크로스 도메인 문제 해결
       // domain: 'dev.toky.devkor.club',
     });
 
