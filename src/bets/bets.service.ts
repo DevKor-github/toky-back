@@ -16,19 +16,16 @@ import { UserEntity } from 'src/users/entities/user.entity';
 import { CreateBetAnswerDto } from './dto/create-bet-answer.dto';
 import { BetQuestionEntity } from './entities/betQuestion.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ParticipantsResponseDto } from './dto/participantsResponse.dto';
+import { ParticipantsResponseDto } from './dto/get-participants.dto';
 import { University } from 'src/common/enums/university.enum';
-import {
-  betQuestionResponseDto,
-  Question,
-} from './dto/betQuestionResponse.dto';
+import { betQuestionResponseDto, Question } from './dto/get-bet-question.dto';
 import { Match, MatchMap } from 'src/common/enums/event.enum';
 import { TicketService } from 'src/ticket/ticket.service';
-import { ToTalPredictionDto } from './dto/totalPrediction.dto';
+import { ToTalPredictionDto } from './dto/get-total-prediction.dto';
 import { BetShareEntity } from './entities/betShare.entity';
 import { InputAnswerDto } from './dto/input-answer.dto';
 import { AnswerCountEntity } from './entities/answerCount.entity';
-import { GetRankDto } from './dto/get-Rank.dto';
+import { GetRankDto } from './dto/get-rank.dto';
 @Injectable()
 export class BetsService {
   constructor(

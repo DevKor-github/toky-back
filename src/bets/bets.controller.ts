@@ -22,16 +22,16 @@ import {
   CreateBetAnswerResponseDto,
 } from './dto/create-bet-answer.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { betQuestionResponseDto } from './dto/betQuestionResponse.dto';
-import { ToTalPredictionDto } from './dto/totalPrediction.dto';
-import { ParticipantsResponseDto } from './dto/participantsResponse.dto';
+import { betQuestionResponseDto } from './dto/get-bet-question.dto';
+import { ToTalPredictionDto } from './dto/get-total-prediction.dto';
+import { ParticipantsResponseDto } from './dto/get-participants.dto';
 import { InputAnswerDto } from './dto/input-answer.dto';
 import { TransactionInterceptor } from 'src/common/interceptors/transaction.interceptor';
 import { TransactionManager } from 'src/common/decorators/manager.decorator';
 import { EntityManager } from 'typeorm';
 import { AccessUser } from 'src/common/decorators/accessUser.decorator';
 import { JwtPayload } from 'src/common/interfaces/auth.interface';
-import { GetRankDto } from './dto/get-Rank.dto';
+import { GetRankDto } from './dto/get-rank.dto';
 
 @ApiTags('bets')
 @ApiBearerAuth('accessToken')
