@@ -54,34 +54,27 @@ export class AuthController {
   @Get('/kakao/redirect')
   @UseGuards(AuthGuard('kakao'))
   @ApiOperation({ summary: '카카오 로그인 후 redirect 되는 url' })
-  async kakaoLoginRedirect(@Req() req, @Res() res: Response): Promise<void> {
+  async kakaoLoginRedirect(
+    @Req() req,
+  ): Promise<TokenResponseDto & { needSignup: boolean }> {
     const userInfoDto = await this.usersService.findOrCreateById(req.user.id);
 
     const token = await this.authService.getToken(userInfoDto.payload);
-    res.cookie('access-token', token.accessToken, {
-      expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
-      httpOnly: true, // 클라이언트 측에서 쿠키에 접근하지 못하도록 설정
-      secure: true, // HTTPS에서만 쿠키 전송
-      sameSite: 'none', // 다른 도메인에서의 요청을 허용
-      domain: 'dev.toky.devkor.club',
-    });
-    res.cookie('refresh-token', token.refreshToken, {
-      expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
-      httpOnly: true, // 클라이언트 측에서 쿠키에 접근하지 못하도록 설정
-      secure: true, // HTTPS에서만 쿠키 전송
-      sameSite: 'none', // 다른 도메인에서의 요청을 허용
-      domain: 'dev.toky.devkor.club',
-    });
+
+    const tokenResponse = new TokenResponseDto(
+      token.accessToken,
+      token.refreshToken,
+    );
 
     await this.authService.saveRefreshToken(
       token.refreshToken,
       userInfoDto.payload.id,
     );
     if (!userInfoDto.hasPhone) {
-      res.redirect(process.env.DOMAIN + '/signup');
-      return;
+      // res.redirect(process.env.DOMAIN + '/signup');
+      return { ...tokenResponse, needSignup: true };
     }
-    res.redirect(process.env.DOMAIN);
+    return { ...tokenResponse, needSignup: false };
   }
 
   @Post('/refresh')
