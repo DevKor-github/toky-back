@@ -78,7 +78,7 @@ export class AuthController {
       userInfoDto.payload.id,
     );
     if (!userInfoDto.hasPhone) {
-      res.redirect(process.env.DOMAIN + '/signup');
+      res.redirect('http://localhost:3000/signup');
       return;
     }
     res.redirect(process.env.DOMAIN);
