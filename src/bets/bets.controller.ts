@@ -116,7 +116,7 @@ export class BetsController {
     }
   }
 
-  @Get('/share')
+  @Get('/share/prediction')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
     summary: '종합 예측 우승 스코어 조회',
@@ -132,7 +132,7 @@ export class BetsController {
     return this.betsService.getTotalPredictions(user.id);
   }
 
-  @Post('/share')
+  @Post('/share/prediction')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
     summary: '예측 공유 응모권 획득',
@@ -215,5 +215,21 @@ export class BetsController {
   })
   async getMyRank(@AccessUser() user: JwtPayload) {
     return this.betsService.getRankById(user.id);
+  }
+
+  @Post('/share/rank')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: '랭킹 공유 응모권 획득',
+    description:
+      '사용자가 랭킹을 공유한 후 응모권를 획득합니다. 하루에 한번만 가능합니다.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: '랭킹 공유 응모권 획득 성공, 획득 후 응모권 갯수 반환',
+    type: Number,
+  })
+  async getShareRankTicket(@AccessUser() user: JwtPayload) {
+    return this.betsService.getShareRankTicket(user.id);
   }
 }

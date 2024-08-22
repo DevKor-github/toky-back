@@ -22,10 +22,10 @@ import { betQuestionResponseDto, Question } from './dto/get-bet-question.dto';
 import { Match, MatchMap } from 'src/common/enums/event.enum';
 import { TicketService } from 'src/ticket/ticket.service';
 import { ToTalPredictionDto } from './dto/get-total-prediction.dto';
-import { BetShareEntity } from './entities/betShare.entity';
 import { InputAnswerDto } from './dto/input-answer.dto';
 import { AnswerCountEntity } from './entities/answerCount.entity';
 import { GetRankDto } from './dto/get-rank.dto';
+import { ShareEntity } from './entities/Share.entity';
 @Injectable()
 export class BetsService {
   constructor(
@@ -33,8 +33,8 @@ export class BetsService {
     private readonly betAnswerRepository: Repository<BetAnswerEntity>,
     @InjectRepository(BetQuestionEntity)
     private readonly betQuestionRepository: Repository<BetQuestionEntity>,
-    @InjectRepository(BetShareEntity)
-    private readonly betShareRepository: Repository<BetShareEntity>,
+    @InjectRepository(ShareEntity)
+    private readonly shareRepository: Repository<ShareEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(AnswerCountEntity)
@@ -248,7 +248,44 @@ export class BetsService {
   }
 
   async getSharePredictionTicket(userId: string): Promise<number> {
-    const betShare = await this.betShareRepository.findOne({
+    const share = await this.shareRepository.findOne({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
+    });
+    console.log(share);
+
+    if (
+      share &&
+      share.lastSharePrediction &&
+      share.lastSharePrediction.getTime() >=
+        new Date().getTime() - 1000 * 60 * 60 * 24
+    ) {
+      throw new BadRequestException('Only can get ticket once a day!');
+    }
+
+    if (!share) {
+      const newShare = this.shareRepository.create({
+        user: { id: userId },
+        lastSharePrediction: new Date(),
+      });
+      await this.shareRepository.save(newShare);
+    } else {
+      share.lastSharePrediction = new Date();
+      await this.shareRepository.save(share);
+    }
+
+    return await this.ticketService.changeTicketCount(
+      userId,
+      1,
+      '승부 예측 공유로 응모권 1장 획득',
+    );
+  }
+
+  async getShareRankTicket(userId: string): Promise<number> {
+    const share = await this.shareRepository.findOne({
       where: {
         user: {
           id: userId,
@@ -257,28 +294,29 @@ export class BetsService {
     });
 
     if (
-      betShare &&
-      betShare.lastSharePrediction.getTime() >=
+      share &&
+      share.lastShareRank &&
+      share.lastShareRank.getTime() >=
         new Date().getTime() - 1000 * 60 * 60 * 24
     ) {
       throw new BadRequestException('Only can get ticket once a day!');
     }
 
-    if (!betShare) {
-      const newBetShare = this.betShareRepository.create({
+    if (!share) {
+      const newShare = this.shareRepository.create({
         user: { id: userId },
-        lastSharePrediction: new Date(),
+        lastShareRank: new Date(),
       });
-      await this.betShareRepository.save(newBetShare);
+      await this.shareRepository.save(newShare);
     } else {
-      betShare.lastSharePrediction = new Date();
-      await this.betShareRepository.save(betShare);
+      share.lastShareRank = new Date();
+      await this.shareRepository.save(share);
     }
 
     return await this.ticketService.changeTicketCount(
       userId,
       1,
-      '승부 예측 공유로 응모권 1장 획득',
+      '랭킹 공유로 응모권 1장 획득',
     );
   }
 

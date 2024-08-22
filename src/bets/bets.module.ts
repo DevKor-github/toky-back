@@ -6,8 +6,8 @@ import { BetAnswerEntity } from './entities/betAnswer.entity';
 import { BetQuestionEntity } from './entities/betQuestion.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { TicketModule } from 'src/ticket/ticket.module';
-import { BetShareEntity } from './entities/betShare.entity';
 import { AnswerCountEntity } from './entities/answerCount.entity';
+import { ShareEntity } from './entities/Share.entity';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { AnswerCountEntity } from './entities/answerCount.entity';
       BetAnswerEntity,
       BetQuestionEntity,
       UserEntity,
-      BetShareEntity,
+      ShareEntity,
       AnswerCountEntity,
     ]),
     TicketModule,
