@@ -55,25 +55,21 @@ export class AuthController {
   @UseGuards(AuthGuard('kakao'))
   @ApiOperation({ summary: '카카오 로그인 후 redirect 되는 url' })
   async kakaoLoginRedirect(@Req() req, @Res() res: Response): Promise<void> {
-    const referer = req.headers.referer ?? '';
-    const isLocal = referer.includes('localhost');
-    const isDev = process.env.NODE_ENV === 'development';
     const userInfoDto = await this.usersService.findOrCreateById(req.user.id);
-    console.log(isLocal);
 
     const token = await this.authService.getToken(userInfoDto.payload);
     res.cookie('access-token', token.accessToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
       httpOnly: true, // 클라이언트에서 쿠키에 접근하지 못하게 설정
       secure: true,
-      sameSite: isDev ? 'none' : 'lax', // 또는 'None' 설정으로 크로스 도메인 문제 해결
+      sameSite: 'lax', // 또는 'None' 설정으로 크로스 도메인 문제 해결
       // domain: 'dev.toky.devkor.club',
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
       httpOnly: true, // 클라이언트에서 쿠키에 접근하지 못하게 설정
       secure: true,
-      sameSite: isDev ? 'none' : 'lax', // 또는 'None' 설정으로 크로스 도메인 문제 해결
+      sameSite: 'lax', // 또는 'None' 설정으로 크로스 도메인 문제 해결
       // domain: 'dev.toky.devkor.club',
     });
 
@@ -82,15 +78,10 @@ export class AuthController {
       userInfoDto.payload.id,
     );
     if (!userInfoDto.hasPhone) {
-      res.redirect(
-        isLocal
-          ? //localhost에서는 쿠키가 전달되지 않아서 query로 accessToken, refreshToken 전달
-            `http://localhost:3000/signup?refreshtoken=${token.refreshToken}&accesstoken=${token.accessToken}`
-          : process.env.DOMAIN + '/signup',
-      );
+      res.redirect(process.env.DOMAIN + '/signup');
       return;
     }
-    res.redirect(referer);
+    res.redirect('/');
   }
 
   @Post('/refresh')
