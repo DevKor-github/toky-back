@@ -186,7 +186,7 @@ export class AuthController {
       secure: true, // HTTPS에서만 쿠키 전송
       sameSite: 'none', // 다른 도메인에서의 요청을 허용
     });
-    res.redirect('http://localhost:3000');
+    res.redirect(process.env.DOMAIN);
     // res.send('Cookie has been set');
   }
 }
