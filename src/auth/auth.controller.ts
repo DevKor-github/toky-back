@@ -63,12 +63,14 @@ export class AuthController {
       httpOnly: true, // 클라이언트 측에서 쿠키에 접근하지 못하도록 설정
       secure: true, // HTTPS에서만 쿠키 전송
       sameSite: 'none', // 다른 도메인에서의 요청을 허용
+      domain: 'dev.toky.devkor.club',
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
       httpOnly: true, // 클라이언트 측에서 쿠키에 접근하지 못하도록 설정
       secure: true, // HTTPS에서만 쿠키 전송
       sameSite: 'none', // 다른 도메인에서의 요청을 허용
+      domain: 'dev.toky.devkor.club',
     });
 
     await this.authService.saveRefreshToken(
