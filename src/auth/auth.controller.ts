@@ -166,4 +166,21 @@ export class AuthController {
   async checkSignupNeeded(@AccessUser() user: JwtPayload): Promise<boolean> {
     return await this.usersService.validateUser(user.id);
   }
+
+  @Get()
+  @ApiOperation({
+    summary: '쿠키 테스트',
+    description:
+      '쿠키 제공을 위한 테스트 API입니다. 쿠키가 정상적으로 설정되었는지 확인합니다.',
+  })
+  setCookie(@Res() res: Response) {
+    // 쿠키 설정
+    res.cookie('accessToken', 'secretkey', {
+      httpOnly: true, // 클라이언트 측에서 쿠키에 접근하지 못하도록 설정
+      secure: true, // HTTPS에서만 쿠키 전송
+      sameSite: 'none', // 다른 도메인에서의 요청을 허용
+    });
+
+    res.send('Cookie has been set');
+  }
 }
