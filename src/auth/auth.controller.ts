@@ -62,14 +62,18 @@ export class AuthController {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
       // sameSite: 'none',
       // secure: true,
-      httpOnly: false,
+      // httpOnly: false,
+      secure: true, // 쿠키가 HTTPS 프로토콜을 사용하는 경우에만 전송되도록 제한
+      httpOnly: true,
       // domain: 'dev.toky.devkor.club',
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
       // sameSite: 'none',
       // secure: true,
-      httpOnly: false,
+      // httpOnly: false,
+      secure: true, // 쿠키가 HTTPS 프로토콜을 사용하는 경우에만 전송되도록 제한
+      httpOnly: true,
       // domain: 'dev.toky.devkor.club',
     });
 
@@ -78,9 +82,10 @@ export class AuthController {
       userInfoDto.payload.id,
     );
     if (!userInfoDto.hasPhone) {
-      // res.redirect(process.env.DOMAIN + '/signup');
+      res.redirect('/signup');
       return;
     }
+    res.redirect('/');
   }
 
   @Post('/refresh')
