@@ -83,6 +83,7 @@ export class AuthController {
     );
     if (!userInfoDto.hasPhone) {
       res.redirect(process.env.DOMAIN + '/signup');
+      res.send();
       return;
     }
     res.redirect(process.env.DOMAIN);
@@ -175,12 +176,17 @@ export class AuthController {
   })
   setCookie(@Res() res: Response) {
     // 쿠키 설정
-    res.cookie('accessToken', 'secretkey', {
+    res.cookie('access-token', 'secretkey', {
       httpOnly: true, // 클라이언트 측에서 쿠키에 접근하지 못하도록 설정
       secure: true, // HTTPS에서만 쿠키 전송
       sameSite: 'none', // 다른 도메인에서의 요청을 허용
     });
-
-    res.send('Cookie has been set');
+    res.cookie('refresh-token', 'secretkey', {
+      httpOnly: true, // 클라이언트 측에서 쿠키에 접근하지 못하도록 설정
+      secure: true, // HTTPS에서만 쿠키 전송
+      sameSite: 'none', // 다른 도메인에서의 요청을 허용
+    });
+    res.redirect('http://localhost:3000');
+    // res.send('Cookie has been set');
   }
 }
