@@ -4,12 +4,14 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { cors: true });
 
-  app.enableCors({
-    origin: 'https://localhost:3001', // 프론트엔드 주소
-    credentials: true, // 쿠키 허용
-  });
+  if (process.env.NODE_ENV === 'development') {
+    app.enableCors({
+      origin: 'https://localhost:3001',
+      credentials: true,
+    });
+  }
 
   app.useGlobalPipes(
     new ValidationPipe({
