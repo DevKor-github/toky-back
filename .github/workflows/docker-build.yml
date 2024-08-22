@@ -50,7 +50,7 @@ jobs:
           echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> .env
           echo "KAKAO_REDIRECT_URL=${{ secrets.KAKAO_REDIRECT_URL }}" >> .env
           echo "DOMAIN=${{ secrets.DOMAIN }}" >> .env
-          echo "NODE_ENV=development" >> .env
+          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
           cat .env
 
       - name: Run Docker
