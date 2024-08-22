@@ -82,10 +82,10 @@ export class AuthController {
       userInfoDto.payload.id,
     );
     if (!userInfoDto.hasPhone) {
-      res.redirect('/signup');
+      res.redirect(process.env.DOMAIN + '/signup');
       return;
     }
-    res.redirect('/');
+    res.redirect(process.env.DOMAIN);
   }
 
   @Post('/refresh')
