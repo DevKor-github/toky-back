@@ -35,7 +35,6 @@ import { TransactionManager } from 'src/common/decorators/manager.decorator';
 import { EntityManager } from 'typeorm';
 
 @ApiTags('auth')
-@ApiBearerAuth('accessToken')
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
@@ -84,6 +83,7 @@ export class AuthController {
     res.redirect('/');
   }
 
+  @ApiBearerAuth('refreshToken')
   @Post('/refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
   @ApiOperation({
@@ -102,6 +102,7 @@ export class AuthController {
     return await this.authService.refreshToken(user);
   }
 
+  @ApiBearerAuth('accessToken')
   @Post('/logout')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
@@ -113,6 +114,7 @@ export class AuthController {
     await this.authService.removeRefreshToken(user.id);
   }
 
+  @ApiBearerAuth('accessToken')
   @Post('/signup')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(TransactionInterceptor)
@@ -131,6 +133,7 @@ export class AuthController {
     await this.usersService.signup(transactionManager, signupDto, user.id);
   }
 
+  @ApiBearerAuth('accessToken')
   @Get('/check-name')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
@@ -147,6 +150,7 @@ export class AuthController {
     return await this.usersService.isValidName(checkNameDto.name);
   }
 
+  @ApiBearerAuth('accessToken')
   @Get('/need-signup')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
