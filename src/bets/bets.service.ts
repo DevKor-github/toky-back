@@ -481,4 +481,20 @@ export class BetsService {
       },
     });
   }
+
+  async getLastRank(transactionManager: EntityManager): Promise<number> {
+    const lastRank = await transactionManager.maximum(
+      AnswerCountEntity,
+      'rank',
+    );
+    if (lastRank === null) return 1;
+    const lastRankCounts = await transactionManager.find(AnswerCountEntity, {
+      where: {
+        rank: lastRank,
+      },
+    });
+    return lastRankCounts[0].count === 0
+      ? lastRank
+      : lastRank + lastRankCounts.length;
+  }
 }

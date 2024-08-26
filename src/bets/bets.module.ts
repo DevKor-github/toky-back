@@ -22,5 +22,6 @@ import { ShareEntity } from './entities/Share.entity';
   ],
   controllers: [BetsController],
   providers: [BetsService],
+  exports: [BetsService],
 })
 export class BetsModule {}
