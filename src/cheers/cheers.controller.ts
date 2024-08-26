@@ -14,13 +14,13 @@ import { AccessUser } from 'src/common/decorators/accessUser.decorator';
 import { JwtPayload } from 'src/common/interfaces/auth.interface';
 
 @ApiTags('cheers')
-@ApiBearerAuth('accessToken')
 @Controller('cheers')
 export class CheersController {
   constructor(private readonly cheerService: CheersService) {}
 
   @Post('/')
   @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '응원하기',
     description:
@@ -38,18 +38,32 @@ export class CheersController {
   }
 
   @Get('/participants')
-  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
     summary: '응원 참여자 조회하기',
-    description:
-      '각 학교별 응원하는 유저 수, 현재 사용자가 응원했을 경우 응원한 학교를 함께 조회합니다.',
+    description: '각 학교별 응원하는 유저 수를 반환합니다.',
   })
   @ApiResponse({
     status: 200,
     description: '응원 참여자 조회 성공',
     type: CheerRateDto,
   })
-  async getCheerRate(@AccessUser() user: JwtPayload) {
-    return await this.cheerService.getRate(user.id);
+  async getCheerRate() {
+    return await this.cheerService.getRate();
+  }
+
+  @Get('/my')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '내 응원 학교 조회하기',
+    description: '현재 사용자가 응원한 학교를 조회합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '응원 학교 조회 성공',
+    type: CheerDto,
+  })
+  async getMyCheer(@AccessUser() user: JwtPayload) {
+    return await this.cheerService.getCheer(user.id);
   }
 }
