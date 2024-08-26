@@ -15,6 +15,9 @@ export class AnswerCountEntity {
   @Column({ name: 'count', default: 0 })
   count: number;
 
+  @Column({ name: 'rank' })
+  rank: number;
+
   @OneToOne(() => UserEntity, { onUpdate: 'CASCADE' }) // one to many point
   @JoinColumn({ name: 'user_id' })
   user: UserEntity;

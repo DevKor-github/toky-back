@@ -23,9 +23,9 @@ import { Match, MatchMap } from 'src/common/enums/event.enum';
 import { TicketService } from 'src/ticket/ticket.service';
 import { ToTalPredictionDto } from './dto/get-total-prediction.dto';
 import { InputAnswerDto } from './dto/input-answer.dto';
-import { AnswerCountEntity } from './entities/answerCount.entity';
 import { GetRankDto } from './dto/get-rank.dto';
 import { ShareEntity } from './entities/Share.entity';
+import { AnswerCountEntity } from './entities/answerCount.entity';
 @Injectable()
 export class BetsService {
   constructor(
@@ -386,6 +386,34 @@ export class BetsService {
         );
       }
     }
+
+    //save rank
+    const answerCounts = await transactionManager.find(AnswerCountEntity, {
+      relations: {
+        user: true,
+      },
+      order: {
+        count: 'DESC',
+        id: 'ASC',
+      },
+    });
+
+    let sameRanking = 1;
+    answerCounts.forEach((answerCount, idx, array) => {
+      if (idx === 0) {
+        answerCount.rank = 1;
+      } else {
+        if (answerCount.count === array[idx - 1].count) {
+          answerCount.rank = array[idx - 1].rank;
+          sameRanking++;
+        } else {
+          answerCount.rank = array[idx - 1].rank + sameRanking;
+          sameRanking = 1;
+        }
+      }
+    });
+
+    await transactionManager.save(answerCounts);
   }
 
   async getRankList(page: number) {
@@ -395,7 +423,7 @@ export class BetsService {
         user: true,
       },
       order: {
-        count: 'DESC',
+        rank: 'ASC',
         id: 'ASC',
       },
       take: take,
@@ -404,21 +432,11 @@ export class BetsService {
 
     if (answers.length === 0) return [];
 
-    const topRank = (await this.getRankById(answers[0].user.id)).rank;
-
     const questionCount = await this.getAnswerdQuestionCount();
 
-    const result = answers.map((answer, idx, array) => {
-      let rank = (page - 1) * take + idx + 1;
-      let i = 1;
-      while (idx - i >= 0 && array[idx - i].count === answer.count) {
-        rank--;
-        i++;
-      }
-      if (idx - i <= 0 && array[0].count === answer.count) rank = topRank;
-
+    const result = answers.map((answer) => {
       const resultDto: GetRankDto = {
-        rank: rank,
+        rank: answer.rank,
         correctAnswerPercentage: (answer.count / questionCount) * 100,
         name: answer.user.name,
         university: answer.user.university,
