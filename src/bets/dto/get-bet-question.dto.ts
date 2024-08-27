@@ -11,14 +11,6 @@ export class Question {
 
   @IsNumber()
   @ApiProperty({
-    description: '유저가 베팅한 답변(답변 index)',
-    type: Number,
-    required: false,
-  })
-  myAnswer?: number;
-
-  @IsNumber()
-  @ApiProperty({
     description: '실제 정답(답변 index)',
     type: Number,
     required: false,

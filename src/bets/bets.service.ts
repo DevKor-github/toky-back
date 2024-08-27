@@ -19,6 +19,7 @@ import { InputAnswerDto } from './dto/input-answer.dto';
 import { GetRankDto } from './dto/get-rank.dto';
 import { ShareEntity } from './entities/share.entity';
 import { AnswerCountEntity } from './entities/answerCount.entity';
+import { Answer, betAnswerResponseDto } from './dto/get-bet-answer.dto';
 @Injectable()
 export class BetsService {
   constructor(
@@ -36,17 +37,11 @@ export class BetsService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async getBetInfo(id: string): Promise<betQuestionResponseDto> {
+  async getBetInfo(): Promise<betQuestionResponseDto> {
     const betQuestions = await this.betQuestionRepository.find({
       order: {
         index: 'ASC',
       },
-    });
-    const betAnswers = await this.betAnswerRepository.find({
-      where: {
-        user: { id },
-      },
-      relations: { question: true },
     });
 
     const result: betQuestionResponseDto = {
@@ -73,12 +68,63 @@ export class BetsService {
         questionId: betQuestion.id,
         description: betQuestion.description,
         choices: betQuestion.choice,
-        myAnswer:
-          betAnswers.find((answer) => answer.question.id === betQuestion.id)
-            ?.answer ?? null,
         realAnswer:
           betQuestion.realAnswer !== -1 ? betQuestion.realAnswer : null,
         percentage,
+      };
+      switch (betQuestion.match) {
+        case Match.Baseball:
+          result.baseball.push(response);
+          break;
+
+        case Match.Football:
+          result.football.push(response);
+          break;
+
+        case Match.Basketball:
+          result.basketball.push(response);
+          break;
+
+        case Match.Rugby:
+          result.rugby.push(response);
+          break;
+
+        case Match.Icehockey:
+          result.icehockey.push(response);
+          break;
+      }
+    }
+
+    return result;
+  }
+
+  async getBetAnswers(userId: string): Promise<betAnswerResponseDto> {
+    const betQuestions = await this.betQuestionRepository.find({
+      order: {
+        index: 'ASC',
+      },
+    });
+    const betAnswers = await this.betAnswerRepository.find({
+      where: {
+        user: { id: userId },
+      },
+      relations: { question: true },
+    });
+
+    const result: betAnswerResponseDto = {
+      baseball: [],
+      football: [],
+      basketball: [],
+      rugby: [],
+      icehockey: [],
+    };
+
+    for (const betQuestion of betQuestions) {
+      const response: Answer = {
+        questionId: betQuestion.id,
+        myAnswer:
+          betAnswers.find((answer) => answer.question.id === betQuestion.id)
+            ?.answer ?? null,
       };
       switch (betQuestion.match) {
         case Match.Baseball:

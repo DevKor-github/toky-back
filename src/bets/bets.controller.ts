@@ -32,9 +32,9 @@ import { EntityManager } from 'typeorm';
 import { AccessUser } from 'src/common/decorators/accessUser.decorator';
 import { JwtPayload } from 'src/common/interfaces/auth.interface';
 import { GetRankDto } from './dto/get-rank.dto';
+import { betAnswerResponseDto } from './dto/get-bet-answer.dto';
 
 @ApiTags('bets')
-@ApiBearerAuth('accessToken')
 @Controller('bets')
 export class BetsController {
   constructor(private readonly betsService: BetsService) {}
@@ -43,27 +43,41 @@ export class BetsController {
   @ApiOperation({
     summary: '질문 목록 조회',
     description:
-      '질문 목록 및 각 질문 별 전체 사용자의 베팅 비율, 현재 유저가 이미 베팅했을 경유 유저가 베팅한 항목을 반환합니다.',
+      '질문 목록 및 각 질문 별 전체 사용자의 베팅 비율을 반환합니다.',
   })
   @ApiResponse({
     status: 200,
     description: '질문 목록 조회 성공',
     type: betQuestionResponseDto,
   })
-  @UseGuards(AuthGuard('jwt'))
   // TODO: cache
-  async getBetQuestions(
-    @AccessUser() user: JwtPayload,
-  ): Promise<betQuestionResponseDto> {
+  async getBetQuestions(): Promise<betQuestionResponseDto> {
     try {
-      return this.betsService.getBetInfo(user.id);
+      return this.betsService.getBetInfo();
     } catch (err) {
       console.log(err);
     }
   }
 
+  @Get('/bet')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '배팅 항목 조회',
+    description: '각 질문별로 사용자가 배팅한 항목들을 조회합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '베팅 항목 조회 성공',
+    type: betAnswerResponseDto,
+  })
+  async getBetAnswers(@AccessUser() user: JwtPayload) {
+    return this.betsService.getBetAnswers(user.id);
+  }
+
   @Post('/bet')
   @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '베팅하기',
     description:
@@ -118,6 +132,7 @@ export class BetsController {
 
   @Get('/share/prediction')
   @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '종합 예측 우승 스코어 조회',
     description:
@@ -134,6 +149,7 @@ export class BetsController {
 
   @Post('/share/prediction')
   @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '예측 공유 응모권 획득',
     description:
@@ -183,7 +199,6 @@ export class BetsController {
   }
 
   @Get('/rank')
-  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
     summary: '랭킹 조회하기',
     description: '전체 랭킹 리스트를 조회합니다.',
@@ -204,6 +219,7 @@ export class BetsController {
 
   @Get('/rank/my')
   @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '내 랭킹 조회하기',
     description: '내 랭킹을 조회합니다.',
@@ -219,6 +235,7 @@ export class BetsController {
 
   @Post('/share/rank')
   @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '랭킹 공유 응모권 획득',
     description:
