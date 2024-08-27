@@ -3,22 +3,22 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DataSource, IsNull, Not, Repository } from 'typeorm';
+import { DataSource, EntityManager, IsNull, Not, Repository } from 'typeorm';
 import { BetAnswerEntity } from './entities/betAnswer.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { CreateBetAnswerDto } from './dto/create-bet-answer.dto';
 import { BetQuestionEntity } from './entities/betQuestion.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ParticipantsResponseDto } from './dto/participantsResponse.dto';
+import { ParticipantsResponseDto } from './dto/get-participants.dto';
 import { University } from 'src/common/enums/university.enum';
-import {
-  betQuestionResponseDto,
-  Question,
-} from './dto/betQuestionResponse.dto';
+import { betQuestionResponseDto, Question } from './dto/get-bet-question.dto';
 import { Match, MatchMap } from 'src/common/enums/event.enum';
 import { TicketService } from 'src/ticket/ticket.service';
-import { ToTalPredictionDto } from './dto/totalPrediction.dto';
-import { BetShareEntity } from './entities/betShare.entity';
+import { ToTalPredictionDto } from './dto/get-total-prediction.dto';
+import { InputAnswerDto } from './dto/input-answer.dto';
+import { GetRankDto } from './dto/get-rank.dto';
+import { ShareEntity } from './entities/share.entity';
+import { AnswerCountEntity } from './entities/answerCount.entity';
 @Injectable()
 export class BetsService {
   constructor(
@@ -26,10 +26,12 @@ export class BetsService {
     private readonly betAnswerRepository: Repository<BetAnswerEntity>,
     @InjectRepository(BetQuestionEntity)
     private readonly betQuestionRepository: Repository<BetQuestionEntity>,
-    @InjectRepository(BetShareEntity)
-    private readonly betShareRepository: Repository<BetShareEntity>,
+    @InjectRepository(ShareEntity)
+    private readonly shareRepository: Repository<ShareEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(AnswerCountEntity)
+    private readonly answerCountRepository: Repository<AnswerCountEntity>,
     private readonly ticketService: TicketService,
     private readonly dataSource: DataSource,
   ) {}
@@ -37,7 +39,7 @@ export class BetsService {
   async getBetInfo(id: string): Promise<betQuestionResponseDto> {
     const betQuestions = await this.betQuestionRepository.find({
       order: {
-        id: 'ASC',
+        index: 'ASC',
       },
     });
     const betAnswers = await this.betAnswerRepository.find({
@@ -71,9 +73,11 @@ export class BetsService {
         questionId: betQuestion.id,
         description: betQuestion.description,
         choices: betQuestion.choice,
-        answer: betAnswers.find(
-          (answer) => answer.question.id === betQuestion.id,
-        )?.answer,
+        myAnswer:
+          betAnswers.find((answer) => answer.question.id === betQuestion.id)
+            ?.answer ?? null,
+        realAnswer:
+          betQuestion.realAnswer !== -1 ? betQuestion.realAnswer : null,
         percentage,
       };
       switch (betQuestion.match) {
@@ -174,7 +178,7 @@ export class BetsService {
           userId,
           1,
           `${MatchMap[question.match]} 종목 ${
-            questionId % 5 === 0 ? 5 : questionId % 5
+            question.index
           }번 예측 참여로 응모권 1개 획득`,
           queryRunner.manager,
         );
@@ -221,7 +225,7 @@ export class BetsService {
           id: userId,
         },
         question: {
-          description: '승리할 팀을 예측해주세요',
+          index: 1,
         },
       },
     });
@@ -237,7 +241,44 @@ export class BetsService {
   }
 
   async getSharePredictionTicket(userId: string): Promise<number> {
-    const betShare = await this.betShareRepository.findOne({
+    const share = await this.shareRepository.findOne({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
+    });
+    console.log(share);
+
+    if (
+      share &&
+      share.lastSharePrediction &&
+      share.lastSharePrediction.getTime() >=
+        new Date().getTime() - 1000 * 60 * 60 * 24
+    ) {
+      throw new BadRequestException('Only can get ticket once a day!');
+    }
+
+    if (!share) {
+      const newShare = this.shareRepository.create({
+        user: { id: userId },
+        lastSharePrediction: new Date(),
+      });
+      await this.shareRepository.save(newShare);
+    } else {
+      share.lastSharePrediction = new Date();
+      await this.shareRepository.save(share);
+    }
+
+    return await this.ticketService.changeTicketCount(
+      userId,
+      1,
+      '승부 예측 공유로 응모권 1장 획득',
+    );
+  }
+
+  async getShareRankTicket(userId: string): Promise<number> {
+    const share = await this.shareRepository.findOne({
       where: {
         user: {
           id: userId,
@@ -246,28 +287,29 @@ export class BetsService {
     });
 
     if (
-      betShare &&
-      betShare.lastSharePrediction.getTime() >=
+      share &&
+      share.lastShareRank &&
+      share.lastShareRank.getTime() >=
         new Date().getTime() - 1000 * 60 * 60 * 24
     ) {
       throw new BadRequestException('Only can get ticket once a day!');
     }
 
-    if (!betShare) {
-      const newBetShare = this.betShareRepository.create({
+    if (!share) {
+      const newShare = this.shareRepository.create({
         user: { id: userId },
-        lastSharePrediction: new Date(),
+        lastShareRank: new Date(),
       });
-      await this.betShareRepository.save(newBetShare);
+      await this.shareRepository.save(newShare);
     } else {
-      betShare.lastSharePrediction = new Date();
-      await this.betShareRepository.save(betShare);
+      share.lastShareRank = new Date();
+      await this.shareRepository.save(share);
     }
 
     return await this.ticketService.changeTicketCount(
       userId,
       1,
-      '승부 예측 공유로 응모권 1장 획득',
+      '랭킹 공유로 응모권 1장 획득',
     );
   }
 
@@ -287,5 +329,160 @@ export class BetsService {
     };
 
     return result;
+  }
+
+  async inputAnswer(
+    inputAnswerDto: InputAnswerDto,
+    transactionManager: EntityManager,
+  ): Promise<void> {
+    const { match, answers, adminCode } = inputAnswerDto;
+    if (adminCode !== process.env.ADMINCODE) {
+      throw new BadRequestException('Only admin can input answer!');
+    }
+
+    const questions = await transactionManager.find(BetQuestionEntity, {
+      where: { match },
+      order: { index: 'ASC' },
+    });
+
+    for (let i = 0; i < 5; i++) {
+      if (questions[i].realAnswer !== -1)
+        throw new BadRequestException('Already answers inputed!');
+      if (answers[i] >= questions[i].choice.length || answers[i] < 0)
+        throw new BadRequestException(`Question #${i + 1} Answer is not valid`);
+      questions[i].realAnswer = answers[i];
+      await transactionManager.save(questions[i]);
+
+      const correctAnswers = await transactionManager.find(BetAnswerEntity, {
+        where: {
+          question: {
+            id: questions[i].id,
+          },
+          answer: answers[i],
+        },
+        relations: {
+          user: {
+            answerCount: true,
+          },
+        },
+      });
+      for (const correctAnswer of correctAnswers) {
+        correctAnswer.user.answerCount.count += 1;
+        await transactionManager.save(correctAnswer.user.answerCount);
+        await this.ticketService.changeTicketCount(
+          correctAnswer.user.id,
+          5,
+          `${MatchMap[questions[i].match]} 종목 ${
+            questions[i].index
+          }번 예측 성공으로 응모권 5개 획득`,
+          transactionManager,
+        );
+      }
+    }
+
+    //save rank
+    const answerCounts = await transactionManager.find(AnswerCountEntity, {
+      relations: {
+        user: true,
+      },
+      order: {
+        count: 'DESC',
+        id: 'ASC',
+      },
+    });
+
+    let sameRanking = 1;
+    answerCounts.forEach((answerCount, idx, array) => {
+      if (idx === 0) {
+        answerCount.rank = 1;
+      } else {
+        if (answerCount.count === array[idx - 1].count) {
+          answerCount.rank = array[idx - 1].rank;
+          sameRanking++;
+        } else {
+          answerCount.rank = array[idx - 1].rank + sameRanking;
+          sameRanking = 1;
+        }
+      }
+    });
+
+    await transactionManager.save(answerCounts);
+  }
+
+  async getRankList(page: number) {
+    const take = 10;
+    const answers = await this.answerCountRepository.find({
+      relations: {
+        user: true,
+      },
+      order: {
+        rank: 'ASC',
+        id: 'ASC',
+      },
+      take: take,
+      skip: (page - 1) * take,
+    });
+
+    if (answers.length === 0) return [];
+
+    const questionCount = await this.getAnswerdQuestionCount();
+
+    const result = answers.map((answer) => {
+      const resultDto: GetRankDto = {
+        rank: answer.rank,
+        correctAnswerPercentage: (answer.count / questionCount) * 100,
+        name: answer.user.name,
+        university: answer.user.university,
+      };
+
+      return resultDto;
+    });
+
+    return result;
+  }
+
+  async getRankById(userId: string) {
+    const answerCount = await this.answerCountRepository.findOne({
+      where: {
+        user: { id: userId },
+      },
+      relations: { user: true },
+    });
+
+    const questionCount = await this.getAnswerdQuestionCount();
+
+    const result: GetRankDto = {
+      rank: answerCount.rank,
+      correctAnswerPercentage: (answerCount.count / questionCount) * 100,
+      name: answerCount.user.name,
+      university: answerCount.user.university,
+    };
+
+    return result;
+  }
+
+  async getAnswerdQuestionCount(): Promise<number> {
+    //Todo - caching
+    return await this.betQuestionRepository.count({
+      where: {
+        realAnswer: Not(-1),
+      },
+    });
+  }
+
+  async getLastRank(transactionManager: EntityManager): Promise<number> {
+    const lastRank = await transactionManager.maximum(
+      AnswerCountEntity,
+      'rank',
+    );
+    if (lastRank === null) return 1;
+    const lastRankCounts = await transactionManager.find(AnswerCountEntity, {
+      where: {
+        rank: lastRank,
+      },
+    });
+    return lastRankCounts[0].count === 0
+      ? lastRank
+      : lastRank + lastRankCounts.length;
   }
 }

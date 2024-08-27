@@ -15,7 +15,15 @@ export class Question {
     type: Number,
     required: false,
   })
-  answer?: number;
+  myAnswer?: number;
+
+  @IsNumber()
+  @ApiProperty({
+    description: '실제 정답(답변 index)',
+    type: Number,
+    required: false,
+  })
+  realAnswer?: number;
 
   @IsString()
   @ApiProperty({

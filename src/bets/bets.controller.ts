@@ -3,15 +3,17 @@ import {
   Controller,
   Get,
   Post,
-  Req,
+  Query,
   Res,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { BetsService } from './bets.service';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -20,9 +22,16 @@ import {
   CreateBetAnswerResponseDto,
 } from './dto/create-bet-answer.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { betQuestionResponseDto } from './dto/betQuestionResponse.dto';
-import { ToTalPredictionDto } from './dto/totalPrediction.dto';
-import { ParticipantsResponseDto } from './dto/participantsResponse.dto';
+import { betQuestionResponseDto } from './dto/get-bet-question.dto';
+import { ToTalPredictionDto } from './dto/get-total-prediction.dto';
+import { ParticipantsResponseDto } from './dto/get-participants.dto';
+import { InputAnswerDto } from './dto/input-answer.dto';
+import { TransactionInterceptor } from 'src/common/interceptors/transaction.interceptor';
+import { TransactionManager } from 'src/common/decorators/manager.decorator';
+import { EntityManager } from 'typeorm';
+import { AccessUser } from 'src/common/decorators/accessUser.decorator';
+import { JwtPayload } from 'src/common/interfaces/auth.interface';
+import { GetRankDto } from './dto/get-rank.dto';
 
 @ApiTags('bets')
 @ApiBearerAuth('accessToken')
@@ -43,9 +52,11 @@ export class BetsController {
   })
   @UseGuards(AuthGuard('jwt'))
   // TODO: cache
-  async getBetQuestions(@Req() req): Promise<betQuestionResponseDto> {
+  async getBetQuestions(
+    @AccessUser() user: JwtPayload,
+  ): Promise<betQuestionResponseDto> {
     try {
-      return this.betsService.getBetInfo(req.user.id);
+      return this.betsService.getBetInfo(user.id);
     } catch (err) {
       console.log(err);
     }
@@ -72,7 +83,7 @@ export class BetsController {
     type: CreateBetAnswerResponseDto,
   })
   async createBetAnswer(
-    @Req() req,
+    @AccessUser() user: JwtPayload,
     @Body() createBetAnswerDto: CreateBetAnswerDto,
     @Res() res,
   ) {
@@ -95,7 +106,7 @@ export class BetsController {
       // }
 
       const result = await this.betsService.createOrUpdateAnswer(
-        req.user.id,
+        user.id,
         createBetAnswerDto,
       );
       res.status(result.status).json({ percentage: result.percentage });
@@ -105,7 +116,7 @@ export class BetsController {
     }
   }
 
-  @Get('/share')
+  @Get('/share/prediction')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
     summary: '종합 예측 우승 스코어 조회',
@@ -117,11 +128,11 @@ export class BetsController {
     description: '종합 우승스코어 조회 성공',
     type: ToTalPredictionDto,
   })
-  async getTotalPredictions(@Req() req) {
-    return this.betsService.getTotalPredictions(req.user.id);
+  async getTotalPredictions(@AccessUser() user: JwtPayload) {
+    return this.betsService.getTotalPredictions(user.id);
   }
 
-  @Post('/share')
+  @Post('/share/prediction')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
     summary: '예측 공유 응모권 획득',
@@ -133,8 +144,8 @@ export class BetsController {
     description: '예측 공유 응모권 획득 성공, 획득 후 응모권 갯수 반환',
     type: Number,
   })
-  async getSharePredictionTicket(@Req() req) {
-    return this.betsService.getSharePredictionTicket(req.user.id);
+  async getSharePredictionTicket(@AccessUser() user: JwtPayload) {
+    return this.betsService.getSharePredictionTicket(user.id);
   }
 
   @Get('/participants')
@@ -149,5 +160,76 @@ export class BetsController {
   })
   async getParticipants() {
     return this.betsService.getBetParticipants();
+  }
+
+  @Post('/answer')
+  @UseInterceptors(TransactionInterceptor)
+  @ApiOperation({
+    summary: '실제 정답 입력',
+    description: '베팅 문제들의 실제 정답을 입력합니다',
+  })
+  @ApiBody({
+    type: InputAnswerDto,
+  })
+  @ApiResponse({
+    status: 201,
+    description: '정답 입력 성공',
+  })
+  async inputAnswer(
+    @TransactionManager() transactionManager: EntityManager,
+    @Body() inputAnswerDto: InputAnswerDto,
+  ): Promise<void> {
+    return this.betsService.inputAnswer(inputAnswerDto, transactionManager);
+  }
+
+  @Get('/rank')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: '랭킹 조회하기',
+    description: '전체 랭킹 리스트를 조회합니다.',
+  })
+  @ApiQuery({
+    name: 'page',
+    description: '조회하고자 하는 페이지(없으면 1페이지 반환)',
+    required: false,
+  })
+  @ApiResponse({
+    status: 200,
+    description: '전체 랭킹 목록 조회 성공',
+    type: [GetRankDto],
+  })
+  async getRank(@Query('page') page?: number) {
+    return this.betsService.getRankList(page || 1);
+  }
+
+  @Get('/rank/my')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: '내 랭킹 조회하기',
+    description: '내 랭킹을 조회합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '내 랭킹 조회 성공',
+    type: GetRankDto,
+  })
+  async getMyRank(@AccessUser() user: JwtPayload) {
+    return this.betsService.getRankById(user.id);
+  }
+
+  @Post('/share/rank')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: '랭킹 공유 응모권 획득',
+    description:
+      '사용자가 랭킹을 공유한 후 응모권를 획득합니다. 하루에 한번만 가능합니다.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: '랭킹 공유 응모권 획득 성공, 획득 후 응모권 갯수 반환',
+    type: Number,
+  })
+  async getShareRankTicket(@AccessUser() user: JwtPayload) {
+    return this.betsService.getShareRankTicket(user.id);
   }
 }

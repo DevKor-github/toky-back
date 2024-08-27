@@ -6,7 +6,8 @@ import { BetAnswerEntity } from './entities/betAnswer.entity';
 import { BetQuestionEntity } from './entities/betQuestion.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { TicketModule } from 'src/ticket/ticket.module';
-import { BetShareEntity } from './entities/betShare.entity';
+import { AnswerCountEntity } from './entities/answerCount.entity';
+import { ShareEntity } from './entities/share.entity';
 
 @Module({
   imports: [
@@ -14,11 +15,13 @@ import { BetShareEntity } from './entities/betShare.entity';
       BetAnswerEntity,
       BetQuestionEntity,
       UserEntity,
-      BetShareEntity,
+      ShareEntity,
+      AnswerCountEntity,
     ]),
     TicketModule,
   ],
   controllers: [BetsController],
   providers: [BetsService],
+  exports: [BetsService],
 })
 export class BetsModule {}

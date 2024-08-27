@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBearerAuth,
@@ -10,6 +10,8 @@ import {
 import { CheerDto } from './dto/cheer.dto';
 import { CheersService } from './cheers.service';
 import { CheerRateDto } from './dto/cheerRate.dto';
+import { AccessUser } from 'src/common/decorators/accessUser.decorator';
+import { JwtPayload } from 'src/common/interfaces/auth.interface';
 
 @ApiTags('cheers')
 @ApiBearerAuth('accessToken')
@@ -31,8 +33,8 @@ export class CheersController {
     status: 201,
     description: '응원하기 성공',
   })
-  async cheerUniv(@Body() cheerDto: CheerDto, @Req() req) {
-    await this.cheerService.cheerUniv(cheerDto, req.user.id);
+  async cheerUniv(@AccessUser() user: JwtPayload, @Body() cheerDto: CheerDto) {
+    await this.cheerService.cheerUniv(cheerDto, user.id);
   }
 
   @Get('/participants')
@@ -47,7 +49,7 @@ export class CheersController {
     description: '응원 참여자 조회 성공',
     type: CheerRateDto,
   })
-  async getCheerRate(@Req() req) {
-    return await this.cheerService.getRate(req.user.id);
+  async getCheerRate(@AccessUser() user: JwtPayload) {
+    return await this.cheerService.getRate(user.id);
   }
 }

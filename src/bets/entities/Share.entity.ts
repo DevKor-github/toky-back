@@ -7,17 +7,24 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity('bet_share')
-export class BetShareEntity {
+@Entity('share')
+export class ShareEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({
     type: Date,
+    default: null,
   })
   lastSharePrediction: Date;
 
-  @OneToOne(() => UserEntity, { onUpdate: 'CASCADE' }) // one to many point
+  @Column({
+    type: Date,
+    default: null,
+  })
+  lastShareRank: Date;
+
+  @OneToOne(() => UserEntity, { onUpdate: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: UserEntity;
 }

@@ -6,7 +6,7 @@ import { DrawEntity } from './entities/draw.entity';
 import { DrawGiftDto } from './dto/draw-gift.dto';
 import { TicketService } from './ticket.service';
 import { GetGiftDto } from './dto/get-gift.dto';
-import { GetDrawCountDto, GiftDrawCount } from './dto/get-drawCount.dto';
+import { GetDrawCountDto } from './dto/get-drawCount.dto';
 
 @Injectable()
 export class GiftService {
@@ -73,16 +73,16 @@ export class GiftService {
   }
 
   async getDrawCount(userId: string): Promise<GetDrawCountDto> {
-    const allResult: GiftDrawCount[] = await this.drawRepository
+    const allResult: DrawGiftDto[] = await this.drawRepository
       .createQueryBuilder('draw')
       .select('draw.gift_id', 'giftId')
-      .addSelect('COUNT(*)', 'drawCount')
+      .addSelect('COUNT(*)', 'count')
       .groupBy('draw.gift_id')
       .getRawMany();
-    const myResult: GiftDrawCount[] = await this.drawRepository
+    const myResult: DrawGiftDto[] = await this.drawRepository
       .createQueryBuilder('draw')
       .select('draw.gift_id', 'giftId')
-      .addSelect('COUNT(*)', 'drawCount')
+      .addSelect('COUNT(*)', 'count')
       .where('draw.user_id = :userId', { userId })
       .groupBy('draw.gift_id')
       .getRawMany();

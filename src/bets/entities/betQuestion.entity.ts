@@ -10,6 +10,9 @@ export class BetQuestionEntity {
   match: Match;
 
   @Column()
+  index: number;
+
+  @Column()
   description: string;
 
   @Column({ type: 'text', array: true })
@@ -23,6 +26,9 @@ export class BetQuestionEntity {
 
   @Column({ type: 'int', default: 0, nullable: true })
   choice3Count: number;
+
+  @Column({ type: 'int', default: -1 })
+  realAnswer: number;
 
   @OneToMany(() => BetAnswerEntity, (answer) => answer.question)
   betAnswers: BetAnswerEntity[];
