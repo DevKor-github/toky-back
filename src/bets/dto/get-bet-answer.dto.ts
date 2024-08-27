@@ -19,18 +19,18 @@ export class Answer {
 }
 
 export class betAnswerResponseDto {
-  @ApiProperty({ description: '야구 질문 목록', type: Answer })
+  @ApiProperty({ description: '야구 질문 목록', type: [Answer] })
   baseball: Answer[];
 
-  @ApiProperty({ description: '축구 질문 목록', type: Answer })
+  @ApiProperty({ description: '축구 질문 목록', type: [Answer] })
   football: Answer[];
 
-  @ApiProperty({ description: '농구 질문 목록', type: Answer })
+  @ApiProperty({ description: '농구 질문 목록', type: [Answer] })
   basketball: Answer[];
 
-  @ApiProperty({ description: '럭비 질문 목록', type: Answer })
+  @ApiProperty({ description: '럭비 질문 목록', type: [Answer] })
   rugby: Answer[];
 
-  @ApiProperty({ description: '빙구 질문 목록', type: Answer })
+  @ApiProperty({ description: '빙구 질문 목록', type: [Answer] })
   icehockey: Answer[];
 }

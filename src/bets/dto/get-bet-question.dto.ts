@@ -42,18 +42,18 @@ export class Question {
 }
 
 export class betQuestionResponseDto {
-  @ApiProperty({ description: '야구 질문 목록', type: Question })
+  @ApiProperty({ description: '야구 질문 목록', type: [Question] })
   baseball: Question[];
 
-  @ApiProperty({ description: '축구 질문 목록', type: Question })
+  @ApiProperty({ description: '축구 질문 목록', type: [Question] })
   football: Question[];
 
-  @ApiProperty({ description: '농구 질문 목록', type: Question })
+  @ApiProperty({ description: '농구 질문 목록', type: [Question] })
   basketball: Question[];
 
-  @ApiProperty({ description: '럭비 질문 목록', type: Question })
+  @ApiProperty({ description: '럭비 질문 목록', type: [Question] })
   rugby: Question[];
 
-  @ApiProperty({ description: '빙구 질문 목록', type: Question })
+  @ApiProperty({ description: '빙구 질문 목록', type: [Question] })
   icehockey: Question[];
 }
