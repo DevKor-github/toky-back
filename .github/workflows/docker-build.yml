@@ -51,6 +51,7 @@ jobs:
           echo "KAKAO_REDIRECT_URL=${{ secrets.KAKAO_REDIRECT_URL }}" >> .env
           echo "DOMAIN=${{ secrets.DOMAIN }}" >> .env
           echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
+          echo "ADMINCODE=${{ secrets.ADMINCODE }}" >> .env
           cat .env
 
       - name: Run Docker
