@@ -16,6 +16,9 @@ async function bootstrap() {
     }),
   );
 
+  const isProd = process.env.NODE_ENV === 'prod';
+  const addedServer = isProd ? '/api' : '/';
+
   const config = new DocumentBuilder()
     .setTitle('Toky Server')
     .setDescription('Toky API Description')
@@ -40,6 +43,7 @@ async function bootstrap() {
       },
       'refreshToken',
     )
+    .addServer(addedServer)
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

@@ -3,14 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  DataSource,
-  EntityManager,
-  IsNull,
-  MoreThan,
-  Not,
-  Repository,
-} from 'typeorm';
+import { DataSource, EntityManager, IsNull, Not, Repository } from 'typeorm';
 import { BetAnswerEntity } from './entities/betAnswer.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { CreateBetAnswerDto } from './dto/create-bet-answer.dto';
@@ -24,7 +17,7 @@ import { TicketService } from 'src/ticket/ticket.service';
 import { ToTalPredictionDto } from './dto/get-total-prediction.dto';
 import { InputAnswerDto } from './dto/input-answer.dto';
 import { GetRankDto } from './dto/get-rank.dto';
-import { ShareEntity } from './entities/Share.entity';
+import { ShareEntity } from './entities/share.entity';
 import { AnswerCountEntity } from './entities/answerCount.entity';
 @Injectable()
 export class BetsService {
@@ -455,16 +448,11 @@ export class BetsService {
       },
       relations: { user: true },
     });
-    const count = await this.answerCountRepository.count({
-      where: {
-        count: MoreThan(answerCount.count),
-      },
-    });
 
     const questionCount = await this.getAnswerdQuestionCount();
 
     const result: GetRankDto = {
-      rank: count + 1,
+      rank: answerCount.rank,
       correctAnswerPercentage: (answerCount.count / questionCount) * 100,
       name: answerCount.user.name,
       university: answerCount.user.university,

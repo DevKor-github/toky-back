@@ -35,7 +35,6 @@ import { TransactionManager } from 'src/common/decorators/manager.decorator';
 import { EntityManager } from 'typeorm';
 
 @ApiTags('auth')
-@ApiBearerAuth('accessToken')
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
@@ -60,16 +59,19 @@ export class AuthController {
     const token = await this.authService.getToken(userInfoDto.payload);
     res.cookie('access-token', token.accessToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
-      // sameSite: 'none',
-      // secure: true,
-      httpOnly: false,
+      httpOnly: true, // 클라이언트에서 쿠키에 접근하지 못하게 설정
+      secure: true,
+      sameSite: 'lax', // 또는 'None' 설정으로 크로스 도메인 문제 해결
+      // domain: 'dev.toky.devkor.club',
     });
     res.cookie('refresh-token', token.refreshToken, {
       expires: new Date(Date.now() + 60000 + 9 * 60 * 60 * 1000),
-      // sameSite: 'none',
-      // secure: true,
-      httpOnly: false,
+      httpOnly: true, // 클라이언트에서 쿠키에 접근하지 못하게 설정
+      secure: true,
+      sameSite: 'lax', // 또는 'None' 설정으로 크로스 도메인 문제 해결
+      // domain: 'dev.toky.devkor.club',
     });
+
     await this.authService.saveRefreshToken(
       token.refreshToken,
       userInfoDto.payload.id,
@@ -78,8 +80,10 @@ export class AuthController {
       res.redirect(process.env.DOMAIN + '/signup');
       return;
     }
+    res.redirect('/');
   }
 
+  @ApiBearerAuth('refreshToken')
   @Post('/refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
   @ApiOperation({
@@ -98,6 +102,7 @@ export class AuthController {
     return await this.authService.refreshToken(user);
   }
 
+  @ApiBearerAuth('accessToken')
   @Post('/logout')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
@@ -109,6 +114,7 @@ export class AuthController {
     await this.authService.removeRefreshToken(user.id);
   }
 
+  @ApiBearerAuth('accessToken')
   @Post('/signup')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(TransactionInterceptor)
@@ -127,6 +133,7 @@ export class AuthController {
     await this.usersService.signup(transactionManager, signupDto, user.id);
   }
 
+  @ApiBearerAuth('accessToken')
   @Get('/check-name')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
@@ -143,6 +150,7 @@ export class AuthController {
     return await this.usersService.isValidName(checkNameDto.name);
   }
 
+  @ApiBearerAuth('accessToken')
   @Get('/need-signup')
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
@@ -157,5 +165,27 @@ export class AuthController {
   })
   async checkSignupNeeded(@AccessUser() user: JwtPayload): Promise<boolean> {
     return await this.usersService.validateUser(user.id);
+  }
+
+  @Get()
+  @ApiOperation({
+    summary: '쿠키 테스트',
+    description:
+      '쿠키 제공을 위한 테스트 API입니다. 쿠키가 정상적으로 설정되었는지 확인합니다.',
+  })
+  setCookie(@Res() res: Response) {
+    // 쿠키 설정
+    res.cookie('access-token', 'secretkey', {
+      httpOnly: true, // 클라이언트 측에서 쿠키에 접근하지 못하도록 설정
+      secure: true, // HTTPS에서만 쿠키 전송
+      sameSite: 'none', // 다른 도메인에서의 요청을 허용
+    });
+    res.cookie('refresh-token', 'secretkey', {
+      httpOnly: true, // 클라이언트 측에서 쿠키에 접근하지 못하도록 설정
+      secure: true, // HTTPS에서만 쿠키 전송
+      sameSite: 'none', // 다른 도메인에서의 요청을 허용
+    });
+    res.redirect(process.env.DOMAIN);
+    // res.send('Cookie has been set');
   }
 }
