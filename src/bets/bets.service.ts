@@ -24,7 +24,7 @@ import { TicketService } from 'src/ticket/ticket.service';
 import { ToTalPredictionDto } from './dto/get-total-prediction.dto';
 import { InputAnswerDto } from './dto/input-answer.dto';
 import { GetRankDto } from './dto/get-rank.dto';
-import { ShareEntity } from './entities/Share.entity';
+import { ShareEntity } from './entities/share.entity';
 import { AnswerCountEntity } from './entities/answerCount.entity';
 @Injectable()
 export class BetsService {
