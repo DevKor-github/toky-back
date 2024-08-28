@@ -31,6 +31,7 @@ export class GiftService {
       const giftDto: GetGiftDto = {
         id: gift.id,
         name: gift.name,
+        alias: gift.alias,
         requiredTicket: gift.requiredTicket,
         photoUrl: gift.photoUrl,
         count: gift.draws.length,

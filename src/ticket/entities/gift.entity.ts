@@ -9,6 +9,9 @@ export class GiftEntity {
   @Column()
   name: string;
 
+  @Column()
+  alias: string;
+
   @Column({ name: 'required_ticket', default: 1 })
   requiredTicket: number;
 
