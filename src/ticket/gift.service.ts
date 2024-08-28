@@ -81,13 +81,22 @@ export class GiftService {
   }
 
   async getDrawCount(userId: string): Promise<DrawGiftListDto> {
-    const myResult: DrawGiftDto[] = await this.drawRepository
-      .createQueryBuilder('draw')
-      .select('draw.gift_id', 'giftId')
-      .addSelect('COUNT(*)', 'count')
-      .where('draw.user_id = :userId', { userId })
-      .groupBy('draw.gift_id')
-      .orderBy('draw.gift_id')
+    const myResult: DrawGiftDto[] = await this.giftRepository
+      .createQueryBuilder('gift')
+      .select('id', 'giftId')
+      .leftJoin(
+        (qb) =>
+          qb
+            .from(DrawEntity, 'draw')
+            .select('gift_id', 'gift_id')
+            .addSelect('COUNT(*)::int', 'drawcount')
+            .where('user_id = :userId', { userId })
+            .groupBy('gift_id'),
+        'd',
+        'gift.id = d.gift_id',
+      )
+      .addSelect('COALESCE(drawcount, 0)', 'count')
+      .orderBy('id')
       .getRawMany();
 
     const result: DrawGiftListDto = {
