@@ -20,7 +20,7 @@ export class DrawGiftDto {
 
 export class DrawGiftListDto {
   @ApiProperty({
-    description: '응모하고자 하는 경품 목록',
+    description: '경품 별 응모 횟수',
     type: [DrawGiftDto],
   })
   @IsArray()

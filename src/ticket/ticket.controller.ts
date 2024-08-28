@@ -14,12 +14,10 @@ import { GiftService } from './gift.service';
 import { DrawGiftListDto } from './dto/draw-gift.dto';
 import { GetHistoryDto } from './dto/get-history.dto';
 import { GetGiftDto } from './dto/get-gift.dto';
-import { GetDrawCountDto } from './dto/get-drawCount.dto';
 import { AccessUser } from 'src/common/decorators/accessUser.decorator';
 import { JwtPayload } from 'src/common/interfaces/auth.interface';
 
 @ApiTags('ticket')
-@ApiBearerAuth('accessToken')
 @Controller('ticket')
 export class TicketController {
   constructor(
@@ -30,6 +28,7 @@ export class TicketController {
 
   @Get('/')
   @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '본인 응모권 갯수 조회',
     description: '본인의 현재 응모권 개수를 조회합니다.',
@@ -45,6 +44,7 @@ export class TicketController {
 
   @Get('/history')
   @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '응모권 획득 및 사용 내역 조회',
     description: '응모권 획득 및 사용내역을 조회합니다.',
@@ -67,14 +67,13 @@ export class TicketController {
   }
 
   @Get('/gift')
-  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
     summary: '경품 목록 조회',
     description: '경품 목록을 조회합니다.',
   })
   @ApiResponse({
     status: 200,
-    description: '내역 조회 성공',
+    description: '경품 목록 조회 성공',
     type: [GetGiftDto],
   })
   async getGiftList() {
@@ -83,6 +82,7 @@ export class TicketController {
 
   @Post('/draw')
   @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '경품 응모',
     description:
@@ -104,15 +104,15 @@ export class TicketController {
 
   @Get('/draw')
   @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
-    summary: '경품 응모 참여인원 조회',
-    description:
-      '경품별로 응모 수를 조회합니다. 또한 현재 사용자의 경품 별 응모 횟수도 함께 반환합니다.',
+    summary: '내 응모 현황 조회',
+    description: '현재 사용자의 경품 별 응모 수를 조회합니다.',
   })
   @ApiResponse({
     status: 200,
     description: '경품 응모참여인원 조회 성공',
-    type: GetDrawCountDto,
+    type: DrawGiftListDto,
   })
   async getDrawCount(@AccessUser() user: JwtPayload) {
     return this.giftService.getDrawCount(user.id);

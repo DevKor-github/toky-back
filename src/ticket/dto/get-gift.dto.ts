@@ -12,4 +12,7 @@ export class GetGiftDto {
 
   @ApiProperty({ description: '경품 이미지 url' })
   photoUrl: string;
+
+  @ApiProperty({ description: '전체 응모 수' })
+  count: number;
 }

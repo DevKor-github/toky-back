@@ -17,9 +17,11 @@ export class CheersService {
     const existingRecord = await this.cheerRepository.findOne({
       where: { user: { id: userId } },
     });
-    if (existingRecord && existingRecord.univ !== cheerDto.univ) {
-      existingRecord.univ = cheerDto.univ;
-      await this.cheerRepository.save(existingRecord);
+    if (existingRecord) {
+      if (existingRecord.univ !== cheerDto.univ) {
+        existingRecord.univ = cheerDto.univ;
+        await this.cheerRepository.save(existingRecord);
+      }
     } else {
       const newRecord = this.cheerRepository.create({
         univ: cheerDto.univ,
@@ -30,11 +32,7 @@ export class CheersService {
   }
 
   // TODO: 캐싱이라던지.. 좀 더 효율이 필요.
-  async getRate(userid: string): Promise<CheerRateDto> {
-    const cheering = await this.cheerRepository.findOne({
-      where: { user: { id: userid } },
-    });
-
+  async getRate(): Promise<CheerRateDto> {
     const korea = await this.cheerRepository.count({
       where: { univ: University.Korea },
     });
@@ -43,9 +41,19 @@ export class CheersService {
     });
 
     const result: CheerRateDto = {
-      cheering: cheering ? cheering.univ : null,
       participants: [korea, yonsei],
     };
+    return result;
+  }
+
+  async getCheer(userId: string): Promise<CheerDto> {
+    const existingRecord = await this.cheerRepository.findOne({
+      where: { user: { id: userId } },
+    });
+    const result: CheerDto = {
+      univ: existingRecord ? existingRecord.univ : null,
+    };
+
     return result;
   }
 }

@@ -3,10 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { GiftEntity } from './entities/gift.entity';
 import { DataSource, Repository } from 'typeorm';
 import { DrawEntity } from './entities/draw.entity';
-import { DrawGiftDto } from './dto/draw-gift.dto';
+import { DrawGiftDto, DrawGiftListDto } from './dto/draw-gift.dto';
 import { TicketService } from './ticket.service';
 import { GetGiftDto } from './dto/get-gift.dto';
-import { GetDrawCountDto } from './dto/get-drawCount.dto';
 
 @Injectable()
 export class GiftService {
@@ -20,13 +19,21 @@ export class GiftService {
   ) {}
 
   async getGiftList(): Promise<GetGiftDto[]> {
-    const gifts = await this.giftRepository.find();
+    const gifts = await this.giftRepository.find({
+      relations: {
+        draws: true,
+      },
+      order: {
+        id: 'ASC',
+      },
+    });
     const result: GetGiftDto[] = gifts.map((gift) => {
       const giftDto: GetGiftDto = {
         id: gift.id,
         name: gift.name,
         requiredTicket: gift.requiredTicket,
         photoUrl: gift.photoUrl,
+        count: gift.draws.length,
       };
 
       return giftDto;
@@ -72,24 +79,18 @@ export class GiftService {
     }
   }
 
-  async getDrawCount(userId: string): Promise<GetDrawCountDto> {
-    const allResult: DrawGiftDto[] = await this.drawRepository
-      .createQueryBuilder('draw')
-      .select('draw.gift_id', 'giftId')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('draw.gift_id')
-      .getRawMany();
+  async getDrawCount(userId: string): Promise<DrawGiftListDto> {
     const myResult: DrawGiftDto[] = await this.drawRepository
       .createQueryBuilder('draw')
       .select('draw.gift_id', 'giftId')
       .addSelect('COUNT(*)', 'count')
       .where('draw.user_id = :userId', { userId })
       .groupBy('draw.gift_id')
+      .orderBy('draw.gift_id')
       .getRawMany();
 
-    const result: GetDrawCountDto = {
-      allResult,
-      myResult,
+    const result: DrawGiftListDto = {
+      draws: myResult,
     };
 
     return result;
