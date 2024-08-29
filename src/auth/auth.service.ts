@@ -24,7 +24,7 @@ export class AuthService {
 
   async getToken(payload: JwtPayload): Promise<TokenResponseDto> {
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: '1h',
+      expiresIn: '3m',
       secret: process.env.JWT_SECRET_KEY,
     });
 
