@@ -7,6 +7,9 @@ export class GetGiftDto {
   @ApiProperty({ description: '경품 이름' })
   name: string;
 
+  @ApiProperty({ description: '경품 별명' })
+  alias: string;
+
   @ApiProperty({ description: '응모에 필요한 응모권 수(전부다 1)' })
   requiredTicket: number;
 
