@@ -40,8 +40,8 @@ export class HistoryService {
     const histories = await this.historyRepository.find({
       where: { user: { id: userId } },
       order: { createdAt: 'DESC', remainingTicket: 'ASC' },
-      take,
-      skip: (page - 1) * take,
+      // take,
+      // skip: (page - 1) * take,
     });
 
     const result: GetHistoryDto[] = histories.map((history) => {
