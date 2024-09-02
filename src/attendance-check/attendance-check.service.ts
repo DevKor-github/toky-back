@@ -118,6 +118,8 @@ export class AttendanceCheckService {
       todayQuiz ? todayQuiz.id : null,
       todayQuiz ? todayQuiz.description : null,
       myTodayAttendance ? true : false,
+      myTodayAttendance ? myTodayAttendance.isAnswerCorrect : null,
+      myTodayAttendance ? todayQuiz.answer : null,
     );
   }
 }

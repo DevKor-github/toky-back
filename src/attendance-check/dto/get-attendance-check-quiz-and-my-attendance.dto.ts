@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AttendanceCheckEntity } from '../entities/attendance-check.entity';
 
 export class GetMyAttendanceResponseDto {
@@ -33,17 +33,27 @@ export class GetAttendanceCheckQuizAndMyAttendanceResponseDto {
   @ApiProperty({ description: '오늘 출석 여부' })
   todayAttendance: boolean;
 
+  @ApiProperty({ description: '(출석 했을 시) 나의 정답 여부' })
+  isMyAnswerCorrect: boolean;
+
+  @ApiProperty({ description: '(출석 했을 시) 오늘자 정답' })
+  todayAnswer: boolean;
+
   constructor(
     attendanceHistory: GetMyAttendanceResponseDto[],
     today: string,
     quizId: number | null,
     question: string | null,
     todayAttendance: boolean,
+    isMyAnswerCorrect: boolean | null,
+    todayAnswer: boolean | null,
   ) {
     this.attendanceHistory = attendanceHistory;
     this.today = today;
     this.quizId = quizId;
     this.question = question;
     this.todayAttendance = todayAttendance;
+    this.isMyAnswerCorrect = isMyAnswerCorrect;
+    this.todayAnswer = todayAnswer;
   }
 }
