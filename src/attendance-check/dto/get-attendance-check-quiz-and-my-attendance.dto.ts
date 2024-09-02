@@ -33,11 +33,11 @@ export class GetAttendanceCheckQuizAndMyAttendanceResponseDto {
   @ApiProperty({ description: '오늘 출석 여부' })
   todayAttendance: boolean;
 
-  @ApiPropertyOptional({ description: '(출석 했을 시) 나의 정답 여부' })
-  isMyAnswerCorrect?: boolean;
+  @ApiProperty({ description: '(출석 했을 시) 나의 정답 여부' })
+  isMyAnswerCorrect: boolean;
 
-  @ApiPropertyOptional({ description: '(출석 했을 시) 오늘자 정답' })
-  todayAnswer?: boolean;
+  @ApiProperty({ description: '(출석 했을 시) 오늘자 정답' })
+  todayAnswer: boolean;
 
   constructor(
     attendanceHistory: GetMyAttendanceResponseDto[],
