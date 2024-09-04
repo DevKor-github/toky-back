@@ -2,11 +2,13 @@ name: docker-build
 
 on:
   push:
-    branches: ['develop']
+    branches: ['develop', 'main']
 
 env:
   DOCKER_IMAGE: ghcr.io/jeongyeonseung/toky-back
   DOCKER_CONTAINER: toky-back-container
+  DOCKER_IMAGE_PROD: ghcr.io/jeongyeonseung/toky-back-prod
+  DOCKER_CONTAINER_PROD: toky-back-prod-container
 
 jobs:
   build:
@@ -26,35 +28,72 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: build and push image
-        id: docker_build
+      - name: build and push image for main
+        if: github.ref == 'refs/heads/main'
+        id: docker_build_main
+        uses: docker/build-push-action@v3
+        with:
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.DOCKER_IMAGE_MAIN }}:latest
+
+      - name: build and push image for develop
+        if: github.ref == 'refs/heads/develop'
+        id: docker_build_develop
         uses: docker/build-push-action@v3
         with:
           platforms: linux/amd64
           push: true
           tags: ${{ env.DOCKER_IMAGE }}:latest
 
-  deploy:
+  deploy_develop:
     needs: build
-    runs-on: self-hosted
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ['self-hosted', 'dev']
     steps:
-      - name: setup .env
+      - name: setup .env.dev
         run: |
-          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-          echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
-          echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
-          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
-          echo "JWT_REFRESH_SECRET_KEY=${{ secrets.JWT_REFRESH_SECRET_KEY }}" >> .env
-          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> .env
-          echo "KAKAO_REDIRECT_URL=${{ secrets.KAKAO_REDIRECT_URL }}" >> .env
-          echo "DOMAIN=${{ secrets.DOMAIN }}" >> .env
-          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
-          echo "ADMINCODE=${{ secrets.ADMINCODE }}" >> .env
-          cat .env
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env.dev
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env.dev
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env.dev
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env.dev
+          echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env.dev
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env.dev
+          echo "JWT_REFRESH_SECRET_KEY=${{ secrets.JWT_REFRESH_SECRET_KEY }}" >> .env.dev
+          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> .env.dev
+          echo "KAKAO_REDIRECT_URL=${{ secrets.KAKAO_REDIRECT_URL }}" >> .env.dev
+          echo "DOMAIN=${{ secrets.DOMAIN }}" >> .env.dev
+          echo "NODE_ENV=dev" >> .env.dev
+          echo "ADMINCODE=${{ secrets.ADMINCODE }}" >> .env.dev
+          cat .env.dev
 
-      - name: Run Docker
+      - name: Run Docker for dev server
         run: |
           sudo docker stop ${{ env.DOCKER_CONTAINER }} && sudo docker rm ${{ env.DOCKER_CONTAINER }} && sudo docker rmi ${{ env.DOCKER_IMAGE }}:latest
-          sudo docker run --env-file ./.env --platform linux/amd64 -d --name ${{ env.DOCKER_CONTAINER }} --network host --restart always ${{ env.DOCKER_IMAGE }}:latest
+          sudo docker run --env-file ./.env.dev --platform linux/amd64 -d --name ${{ env.DOCKER_CONTAINER }} --network host --restart always ${{ env.DOCKER_IMAGE }}:latest
+
+  deploy_main:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ['self-hosted', 'prod']
+    steps:
+      - name: setup .env.prod
+        run: |
+          echo "DB_HOST=${{ secrets.DB_HOST_PROD }}" >> .env.prod
+          echo "DB_PORT=${{ secrets.DB_PORT_PROD }}" >> .env.prod
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD_PROD }}" >> .env.prod
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME_PROD }}" >> .env.prod
+          echo "DB_DATABASE=${{ secrets.DB_DATABASE_PROD }}" >> .env.prod
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env.prod
+          echo "JWT_REFRESH_SECRET_KEY=${{ secrets.JWT_REFRESH_SECRET_KEY }}" >> .env.prod
+          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID_PROD }}" >> .env.prod
+          echo "KAKAO_REDIRECT_URL=${{ secrets.KAKAO_REDIRECT_URL_PROD }}" >> .env.prod
+          echo "DOMAIN=${{ secrets.DOMAIN_PROD }}" >> .env.prod
+          echo "NODE_ENV=prod" >> .env.prod
+          echo "ADMINCODE=${{ secrets.ADMINCODE }}" >> .env.prod
+          cat .env.prod
+
+      - name: Run Docker for main server
+        run: |
+          sudo docker stop ${{ env.DOCKER_CONTAINER_PROD }} && sudo docker rm ${{ env.DOCKER_CONTAINER_PROD }} && sudo docker rmi ${{ env.DOCKER_IMAGE_PROD }}:latest
+          sudo docker run --env-file ./.env.prod --platform linux/amd64 -d --name ${{ env.DOCKER_CONTAINER_PROD }} --network host --restart always ${{ env.DOCKER_IMAGE_PROD }}:latest
