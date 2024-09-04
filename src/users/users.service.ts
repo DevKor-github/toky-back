@@ -95,14 +95,14 @@ export class UsersService {
         await this.ticektService.changeTicketCount(
           inviteUser.id,
           1,
-          '친구가 초대 링크로 가입하여 1장 지급',
+          '친구초대 이벤트 참여',
           transactionManager,
         );
 
         await this.ticektService.changeTicketCount(
           user.id,
           1,
-          '초대 링크로 가입하여 1장 지급',
+          '친구초대 이벤트 참여',
           transactionManager,
         );
       }
@@ -111,7 +111,7 @@ export class UsersService {
     await this.ticektService.changeTicketCount(
       user.id,
       1,
-      '가입 환영 응모권 1장 지급',
+      '가입을 축하합니다!',
       transactionManager,
     );
   }
