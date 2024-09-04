@@ -72,10 +72,36 @@ jobs:
           sudo docker stop ${{ env.DOCKER_CONTAINER }} && sudo docker rm ${{ env.DOCKER_CONTAINER }} && sudo docker rmi ${{ env.DOCKER_IMAGE }}:latest
           sudo docker run --env-file ./.env.dev --platform linux/amd64 -d --name ${{ env.DOCKER_CONTAINER }} --network host --restart always ${{ env.DOCKER_IMAGE }}:latest
 
-  deploy_main:
+  deploy_main_1:
     needs: build
     if: github.ref == 'refs/heads/main'
-    runs-on: self-hosted
+    runs-on: ['self-hosted', 'prod1']
+    steps:
+      - name: setup .env.prod
+        run: |
+          echo "DB_HOST=${{ secrets.DB_HOST_PROD }}" >> .env.prod
+          echo "DB_PORT=${{ secrets.DB_PORT_PROD }}" >> .env.prod
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD_PROD }}" >> .env.prod
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME_PROD }}" >> .env.prod
+          echo "DB_DATABASE=${{ secrets.DB_DATABASE_PROD }}" >> .env.prod
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env.prod
+          echo "JWT_REFRESH_SECRET_KEY=${{ secrets.JWT_REFRESH_SECRET_KEY }}" >> .env.prod
+          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID_PROD }}" >> .env.prod
+          echo "KAKAO_REDIRECT_URL=${{ secrets.KAKAO_REDIRECT_URL_PROD }}" >> .env.prod
+          echo "DOMAIN=${{ secrets.DOMAIN_PROD }}" >> .env.prod
+          echo "NODE_ENV=prod" >> .env.prod
+          echo "ADMINCODE=${{ secrets.ADMINCODE }}" >> .env.prod
+          cat .env.prod
+
+      - name: Run Docker for main server
+        run: |
+          sudo docker stop ${{ env.DOCKER_CONTAINER_PROD }} && sudo docker rm ${{ env.DOCKER_CONTAINER_PROD }} && sudo docker rmi ${{ env.DOCKER_IMAGE_PROD }}:latest
+          sudo docker run --env-file ./.env.prod --platform linux/amd64 -d -p 3080:3080 --name ${{ env.DOCKER_CONTAINER_PROD }} --network bridge --restart always ${{ env.DOCKER_IMAGE_PROD }}:latest
+
+  deploy_main_2:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ['self-hosted', 'prod2']
     steps:
       - name: setup .env.prod
         run: |
