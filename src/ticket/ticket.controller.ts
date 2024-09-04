@@ -1,11 +1,10 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { TicketService } from './ticket.service';
 import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
-  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -49,21 +48,13 @@ export class TicketController {
     summary: '응모권 획득 및 사용 내역 조회',
     description: '응모권 획득 및 사용내역을 조회합니다.',
   })
-  @ApiQuery({
-    name: 'page',
-    description: '조회하고자 하는 페이지(없으면 1페이지)',
-    required: false,
-  })
   @ApiResponse({
     status: 200,
     description: '내역 조회 성공',
     type: [GetHistoryDto],
   })
-  async getMyTicketHistory(
-    @AccessUser() user: JwtPayload,
-    @Query('page') page?: number,
-  ) {
-    return this.historyService.getHistory(user.id, page);
+  async getMyTicketHistory(@AccessUser() user: JwtPayload) {
+    return this.historyService.getHistory(user.id);
   }
 
   @Get('/gift')

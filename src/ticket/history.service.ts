@@ -32,16 +32,10 @@ export class HistoryService {
       : await this.historyRepository.save(history);
   }
 
-  async getHistory(userId: string, page?: number): Promise<GetHistoryDto[]> {
-    if (!page) {
-      page = 1;
-    }
-    const take = 13;
+  async getHistory(userId: string): Promise<GetHistoryDto[]> {
     const histories = await this.historyRepository.find({
       where: { user: { id: userId } },
       order: { createdAt: 'DESC', remainingTicket: 'ASC' },
-      take,
-      skip: (page - 1) * take,
     });
 
     const result: GetHistoryDto[] = histories.map((history) => {

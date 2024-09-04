@@ -223,9 +223,7 @@ export class BetsService {
         await this.ticketService.changeTicketCount(
           userId,
           1,
-          `${MatchMap[question.match]} 종목 ${
-            question.index
-          }번 예측 참여로 응모권 1개 획득`,
+          `${MatchMap[question.match]} 종목 ${question.index}번 예측 참여`,
           queryRunner.manager,
         );
       }
@@ -319,7 +317,7 @@ export class BetsService {
     return await this.ticketService.changeTicketCount(
       userId,
       1,
-      '승부 예측 공유로 응모권 1장 획득',
+      '승부 예측 공유 이벤트 참여',
     );
   }
 
@@ -355,7 +353,7 @@ export class BetsService {
     return await this.ticketService.changeTicketCount(
       userId,
       1,
-      '랭킹 공유로 응모권 1장 획득',
+      '랭킹 공유 이벤트 참여',
     );
   }
 
@@ -420,7 +418,7 @@ export class BetsService {
           5,
           `${MatchMap[questions[i].match]} 종목 ${
             questions[i].index
-          }번 예측 성공으로 응모권 5개 획득`,
+          }번 예측 성공`,
           transactionManager,
         );
       }
