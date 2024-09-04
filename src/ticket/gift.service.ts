@@ -59,7 +59,7 @@ export class GiftService {
           await this.ticketService.changeTicketCount(
             userId,
             -1 * gift.requiredTicket,
-            `${gift.name} 경품 응모 참여!`,
+            `${gift.alias} 경품 응모 참여!`,
             queryRunner.manager,
           );
           const draw = queryRunner.manager.create(DrawEntity, {

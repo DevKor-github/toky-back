@@ -71,14 +71,14 @@ export class AttendanceCheckService {
       await this.ticketService.changeTicketCount(
         userId,
         2,
-        'Right Answer!',
+        '출석퀴즈 정답!',
         transactionManager,
       );
     } else {
       await this.ticketService.changeTicketCount(
         userId,
         1,
-        'Wrong Answer!',
+        '출석퀴즈 참여!',
         transactionManager,
       );
     }
