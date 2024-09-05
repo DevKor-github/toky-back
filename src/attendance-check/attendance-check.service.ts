@@ -8,10 +8,11 @@ import {
 } from './dto/submit-attendance-check-quiz.dto';
 import { AttendanceCheckQuizEntity } from './entities/attendance-check-quiz.entity';
 import { TicketService } from 'src/ticket/ticket.service';
+import { GetTodayAttendanceCheckQuizResponseDto } from './dto/get-today-attendance-check-quiz.dto';
 import {
-  GetAttendanceCheckQuizAndMyAttendanceResponseDto,
+  GetAttendanceResponseDto,
   GetMyAttendanceResponseDto,
-} from './dto/get-attendance-check-quiz-and-my-attendance.dto';
+} from './dto/get-my-attendance.dto';
 
 @Injectable()
 export class AttendanceCheckService {
@@ -89,9 +90,23 @@ export class AttendanceCheckService {
     );
   }
 
-  async getAttendanceCheckQuizAndMyAttendance(
-    userId: string,
-  ): Promise<GetAttendanceCheckQuizAndMyAttendanceResponseDto> {
+  async getTodayAttendanceCheckQuiz(): Promise<GetTodayAttendanceCheckQuizResponseDto> {
+    const offset = 1000 * 60 * 60 * 9; // 9시간 밀리세컨트 값
+    const koreaTime = new Date(Date.now() + offset);
+    const koreaToday = koreaTime.toISOString().split('T')[0];
+
+    const todayQuiz = await this.attendanceCheckQuizRepository.findOne({
+      where: { attendanceDate: koreaToday },
+    });
+
+    return new GetTodayAttendanceCheckQuizResponseDto(
+      koreaToday,
+      todayQuiz ? todayQuiz.id : null,
+      todayQuiz ? todayQuiz.description : null,
+    );
+  }
+
+  async getMyAttendance(userId: string): Promise<GetAttendanceResponseDto> {
     const offset = 1000 * 60 * 60 * 9; // 9시간 밀리세컨트 값
     const koreaTime = new Date(Date.now() + offset);
     const koreaToday = koreaTime.toISOString().split('T')[0];
@@ -112,11 +127,8 @@ export class AttendanceCheckService {
       (attendance) => new GetMyAttendanceResponseDto(attendance),
     );
 
-    return new GetAttendanceCheckQuizAndMyAttendanceResponseDto(
+    return new GetAttendanceResponseDto(
       myAttendanceHistory,
-      koreaToday,
-      todayQuiz ? todayQuiz.id : null,
-      todayQuiz ? todayQuiz.description : null,
       myTodayAttendance ? true : false,
       myTodayAttendance ? myTodayAttendance.isAnswerCorrect : null,
       myTodayAttendance ? todayQuiz.answer : null,
