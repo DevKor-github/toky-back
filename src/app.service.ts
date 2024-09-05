@@ -3,6 +3,6 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class AppService {
   getHello(): string {
-    return 'Hello World! db 초기화';
+    return 'Hello World! dev 서버 이관';
   }
 }
