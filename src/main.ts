@@ -16,7 +16,7 @@ async function bootstrap() {
     }),
   );
 
-  const isProd = process.env.NODE_ENV === 'prod';
+  const isProd = process.env.NODE_ENV !== 'local';
   const addedServer = isProd ? '/api' : '/';
 
   const config = new DocumentBuilder()
