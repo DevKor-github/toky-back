@@ -94,14 +94,14 @@ export class UsersService {
       if (inviteUser) {
         await this.ticektService.changeTicketCount(
           inviteUser.id,
-          1,
+          5,
           '친구초대 이벤트 참여',
           transactionManager,
         );
 
         await this.ticektService.changeTicketCount(
           user.id,
-          1,
+          5,
           '친구초대 이벤트 참여',
           transactionManager,
         );
