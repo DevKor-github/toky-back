@@ -389,8 +389,10 @@ export class BetsService {
       order: { index: 'ASC' },
     });
 
+    console.log(questions);
+
     for (let i = 0; i < 5; i++) {
-      if (questions[i].realAnswer !== -1)
+      if (questions[i].realAnswer !== -1 && questions[i].realAnswer !== 4)
         throw new BadRequestException('Already answers inputed!');
       if (answers[i] >= questions[i].choice.length || answers[i] < 0)
         throw new BadRequestException(`Question #${i + 1} Answer is not valid`);
