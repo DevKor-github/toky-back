@@ -31,7 +31,7 @@ export class UsersService {
         id,
         inviteCode: this.generateRandomString(),
       });
-      this.userRepository.save(user);
+      await this.userRepository.save(user);
     }
     return new UserInfoDto(user);
   }
