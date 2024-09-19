@@ -13,7 +13,6 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
-  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -33,6 +32,10 @@ import { AccessUser } from 'src/common/decorators/accessUser.decorator';
 import { JwtPayload } from 'src/common/interfaces/auth.interface';
 import { GetRankDto } from './dto/get-rank.dto';
 import { betAnswerResponseDto } from './dto/get-bet-answer.dto';
+import {
+  RankPageOptionsDto,
+  RankPageResponseDto,
+} from './dto/get-rank-page.dto';
 
 @ApiTags('bets')
 @Controller('bets')
@@ -203,18 +206,13 @@ export class BetsController {
     summary: '랭킹 조회하기',
     description: '전체 랭킹 리스트를 조회합니다.',
   })
-  @ApiQuery({
-    name: 'page',
-    description: '조회하고자 하는 페이지(없으면 1페이지 반환)',
-    required: false,
-  })
   @ApiResponse({
     status: 200,
     description: '전체 랭킹 목록 조회 성공',
-    type: [GetRankDto],
+    type: RankPageResponseDto,
   })
-  async getRank(@Query('page') page?: number) {
-    return this.betsService.getRankList(page || 1);
+  async getRank(@Query() requestDto: RankPageOptionsDto) {
+    return this.betsService.getRankList(requestDto);
   }
 
   @Get('/rank/my')
