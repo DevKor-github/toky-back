@@ -30,7 +30,7 @@ import { TransactionManager } from 'src/common/decorators/manager.decorator';
 import { EntityManager } from 'typeorm';
 import { AccessUser } from 'src/common/decorators/accessUser.decorator';
 import { JwtPayload } from 'src/common/interfaces/auth.interface';
-import { GetRankDto } from './dto/get-rank.dto';
+import { GetRankDto, GetShareRankDto } from './dto/get-rank.dto';
 import { betAnswerResponseDto } from './dto/get-bet-answer.dto';
 import {
   RankPageOptionsDto,
@@ -231,7 +231,7 @@ export class BetsController {
     return this.betsService.getRankById(user.id);
   }
 
-  @Post('/share/rank')
+  @Get('/share/rank')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('accessToken')
   @ApiOperation({
@@ -246,5 +246,21 @@ export class BetsController {
   })
   async getShareRankTicket(@AccessUser() user: JwtPayload) {
     return this.betsService.getShareRankTicket(user.id);
+  }
+
+  @Post('/share/rank')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '랭킹 공유 데이터 조회',
+    description: '랭킹 공유 카드의 데이터를 조회합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '랭킹 공유 데이터 조회 성공',
+    type: GetShareRankDto,
+  })
+  async getShareRank(@AccessUser() user: JwtPayload) {
+    return this.betsService.getShareRank(user.id);
   }
 }
