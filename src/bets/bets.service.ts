@@ -3,7 +3,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DataSource, EntityManager, IsNull, Not, Repository } from 'typeorm';
+import {
+  DataSource,
+  EntityManager,
+  Equal,
+  IsNull,
+  MoreThan,
+  Not,
+  Repository,
+} from 'typeorm';
 import { BetAnswerEntity } from './entities/betAnswer.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { CreateBetAnswerDto } from './dto/create-bet-answer.dto';
@@ -16,10 +24,15 @@ import { Match, MatchMap } from 'src/common/enums/event.enum';
 import { TicketService } from 'src/ticket/ticket.service';
 import { ToTalPredictionDto } from './dto/get-total-prediction.dto';
 import { InputAnswerDto } from './dto/input-answer.dto';
-import { GetRankDto } from './dto/get-rank.dto';
+import { GetRankDto, GetShareRankDto } from './dto/get-rank.dto';
 import { ShareEntity } from './entities/share.entity';
 import { AnswerCountEntity } from './entities/answerCount.entity';
 import { Answer, betAnswerResponseDto } from './dto/get-bet-answer.dto';
+import {
+  CursorPageMetaData,
+  RankPageOptionsDto,
+  RankPageResponseDto,
+} from './dto/get-rank-page.dto';
 @Injectable()
 export class BetsService {
   constructor(
@@ -455,34 +468,55 @@ export class BetsService {
     await transactionManager.save(answerCounts);
   }
 
-  async getRankList(page: number) {
-    const take = 10;
+  async getRankList(requestDto: RankPageOptionsDto) {
+    const take = requestDto.take;
+
+    const cursor = requestDto.cursor ?? '00000-00000';
+
+    const [rank, id] = cursor.split('-').map((s) => Number(s));
+
     const answers = await this.answerCountRepository.find({
       relations: {
         user: true,
       },
+      where: [
+        { rank: Equal(rank), id: MoreThan(id) },
+        { rank: MoreThan(rank) },
+      ],
       order: {
         rank: 'ASC',
         id: 'ASC',
       },
-      take: take,
-      skip: (page - 1) * take,
+      take: take + 1,
     });
 
-    if (answers.length === 0) return [];
+    const lastData = answers.length > take ? answers.pop() : null;
+    const meta: CursorPageMetaData = {
+      hasNextData: lastData ? true : false,
+      nextCursor: lastData
+        ? answers.at(-1).rank.toString().padStart(5, '0') +
+          '-' +
+          answers.at(-1).id.toString().padStart(5, '0')
+        : null,
+    };
 
     const questionCount = await this.getAnswerdQuestionCount();
 
-    const result = answers.map((answer) => {
+    const data = answers.map((answer) => {
       const resultDto: GetRankDto = {
         rank: answer.rank,
-        correctAnswerPercentage: (answer.count / questionCount) * 100,
+        correctAnswerPercentage: (answer.count * 100) / questionCount,
         name: answer.user.name,
         university: answer.user.university,
       };
 
       return resultDto;
     });
+
+    const result: RankPageResponseDto = {
+      meta,
+      data,
+    };
 
     return result;
   }
@@ -499,7 +533,7 @@ export class BetsService {
 
     const result: GetRankDto = {
       rank: answerCount.rank,
-      correctAnswerPercentage: (answerCount.count / questionCount) * 100,
+      correctAnswerPercentage: (answerCount.count * 100) / questionCount,
       name: answerCount.user.name,
       university: answerCount.user.university,
     };
@@ -530,5 +564,32 @@ export class BetsService {
     return lastRankCounts[0].count === 0
       ? lastRank
       : lastRank + lastRankCounts.length;
+  }
+
+  async getShareRank(userId: string): Promise<GetShareRankDto> {
+    const answerCount = await this.answerCountRepository.findOne({
+      where: {
+        user: { id: userId },
+      },
+      relations: { user: true },
+    });
+
+    const userCount = await this.getUserCount();
+
+    const result: GetShareRankDto = {
+      name: answerCount.user.name,
+      rankPercentage: Math.round((100 * answerCount.rank) / userCount),
+      rank: answerCount.rank,
+      participants: userCount,
+    };
+
+    return result;
+  }
+
+  async getUserCount(): Promise<number> {
+    //Todo - caching
+    return await this.userRepository.count({
+      where: { phoneNumber: Not(IsNull()) },
+    });
   }
 }
