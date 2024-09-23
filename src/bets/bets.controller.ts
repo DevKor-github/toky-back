@@ -231,7 +231,7 @@ export class BetsController {
     return this.betsService.getRankById(user.id);
   }
 
-  @Get('/share/rank')
+  @Post('/share/rank')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('accessToken')
   @ApiOperation({
@@ -248,7 +248,7 @@ export class BetsController {
     return this.betsService.getShareRankTicket(user.id);
   }
 
-  @Post('/share/rank')
+  @Get('/share/rank')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('accessToken')
   @ApiOperation({
